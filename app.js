@@ -1,4 +1,3 @@
-// require('./polyfills');
 
 
 // global state
@@ -10,7 +9,7 @@ const appState = {
     currentView: 'main', 
     lastMessageId: null,
     refreshInterval: null,
-    messages: new Map(), 
+    messages: {},
     sidebarVisible: false 
 };
 
@@ -27,7 +26,8 @@ const elements = {
     sidebarTitle: document.getElementById("sidebarTitle"),
     headerTitle: document.getElementById("headerTitle"),
     loadingIndicator: document.getElementById("loadingIndicator"),
-    sidebar: document.getElementById("sidebar")
+    sidebar: document.getElementById("sidebar"),
+    content: document.querySelector(".content")
 };
 
 initApp();
@@ -197,7 +197,7 @@ function fetchMessages() {
             return res.json();
         })
         .then(function(messages) {
-            appState.messages.set(appState.currentChannelId, messages);
+            appState.messages[appState.currentChannelId] = messages;
 
             if (messages.length > 0) {
                 appState.lastMessageId = messages[0].id;
@@ -226,7 +226,7 @@ function checkNewMessages() {
             if (newMessages && newMessages.length > 0) {
                 appState.lastMessageId = newMessages[0].id;
 
-                var currentMessages = appState.messages.get(appState.currentChannelId) || [];
+              var currentMessages = appState.messages[appState.currentChannelId] || [];
                 var reversedNewMessages = newMessages.slice().reverse();
                 
                 var updatedMessages = [];
@@ -237,7 +237,7 @@ function checkNewMessages() {
                     updatedMessages.push(currentMessages[j]);
                 }
 
-                appState.messages.set(appState.currentChannelId, updatedMessages);
+                appState.messages[appState.currentChannelId] = updatedMessages;
                 renderMessages(updatedMessages);
             }
         })
