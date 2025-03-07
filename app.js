@@ -1,3 +1,5 @@
+// require('./polyfills');
+
 
 // global state
 const appState = {
@@ -31,7 +33,6 @@ const elements = {
 initApp();
 
 function initApp() {
-
     elements.messageInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
             sendMessage();
@@ -56,23 +57,32 @@ function toggleMenu() {
     }
 }
 
-async function fetchServersAndDMs() {
+function fetchServersAndDMs() {
     try {
         showLoading(true);
 
-        const serverRes = await apiFetch("https://discord.com/api/v9/users/@me/guilds");
-        if (!serverRes.ok) throw new Error("Failed to fetch servers");
-
-        const servers = await serverRes.json();
-        renderServerList(servers);
-
-        const dmRes = await apiFetch("https://discord.com/api/v9/users/@me/channels");
-        if (!dmRes.ok) throw new Error("Failed to fetch DMs");
-
-        const dms = await dmRes.json();
-        renderDMList(dms);
-
-        showLoading(false);
+        apiFetch("https://discord.com/api/v9/users/@me/guilds")
+            .then(function(serverRes) {
+                if (!serverRes.ok) throw new Error("Failed to fetch servers");
+                return serverRes.json();
+            })
+            .then(function(servers) {
+                renderServerList(servers);
+                return apiFetch("https://discord.com/api/v9/users/@me/channels");
+            })
+            .then(function(dmRes) {
+                if (!dmRes.ok) throw new Error("Failed to fetch DMs");
+                return dmRes.json();
+            })
+            .then(function(dms) {
+                renderDMList(dms);
+                showLoading(false);
+            })
+            .catch(function(error) {
+                console.error("Error fetching data:", error);
+                showError("Failed to load servers and DMs. Please try again.");
+                showLoading(false);
+            });
     } catch (error) {
         console.error("Error fetching data:", error);
         showError("Failed to load servers and DMs. Please try again.");
@@ -81,55 +91,64 @@ async function fetchServersAndDMs() {
 }
 
 function renderServerList(servers) {
-    let serverHtml = "";
-    servers.forEach(server => {
-        serverHtml += `<div class="item" onclick="loadServerChannels('${server.id}', '${server.name}')">${server.name}</div>`;
-    });
+    var serverHtml = "";
+    for (var i = 0; i < servers.length; i++) {
+        var server = servers[i];
+        serverHtml += '<div class="item" onclick="loadServerChannels(\'' + server.id + '\', \'' + server.name + '\')">' + server.name + '</div>';
+    }
     elements.serverList.innerHTML = serverHtml || "<div>No servers found</div>";
 }
 
 function renderDMList(dms) {
-    let dmHtml = "";
-    dms.forEach(dm => {
-        const recipient = dm.recipients?.length > 0 ? dm.recipients[0] : null;
+    var dmHtml = "";
+    for (var i = 0; i < dms.length; i++) {
+        var dm = dms[i];
+        var recipient = dm.recipients && dm.recipients.length > 0 ? dm.recipients[0] : null;
         if (recipient) {
-            dmHtml += `<div class="item" onclick="loadDM('${dm.id}', '${recipient.id}', '${recipient.username}')">${recipient.username}</div>`;
+            dmHtml += '<div class="item" onclick="loadDM(\'' + dm.id + '\', \'' + recipient.id + '\', \'' + recipient.username + '\')">' + recipient.username + '</div>';
         }
-    });
+    }
     elements.dmList.innerHTML = dmHtml || "<div>No direct messages found</div>";
 }
 
-async function loadServerChannels(serverId, serverName) {
-    try {
-        resetAppState();
-        appState.currentServerId = serverId;
-        appState.currentView = 'server';
+function loadServerChannels(serverId, serverName) {
+    resetAppState();
+    appState.currentServerId = serverId;
+    appState.currentView = 'server';
 
-        showLoading(true);
-        updateNavigation('server', serverName);
+    showLoading(true);
+    updateNavigation('server', serverName);
 
-        const res = await apiFetch(`https://discord.com/api/v9/guilds/${serverId}/channels`);
-        if (!res.ok) throw new Error("Failed to fetch channels");
+    apiFetch("https://discord.com/api/v9/guilds/" + serverId + "/channels")
+        .then(function(res) {
+            if (!res.ok) throw new Error("Failed to fetch channels");
+            return res.json();
+        })
+        .then(function(channels) {
+            var textChannels = [];
+            for (var i = 0; i < channels.length; i++) {
+                if (channels[i].type === 0) {
+                    textChannels.push(channels[i]);
+                }
+            }
 
-        const channels = await res.json();
+            var channelsHtml = "";
+            for (var j = 0; j < textChannels.length; j++) {
+                var channel = textChannels[j];
+                channelsHtml += '<div class="item" onclick="loadChannel(\'' + serverId + '\', \'' + channel.id + '\', \'' + channel.name + '\')">#' + channel.name + '</div>';
+            }
 
-        const textChannels = channels.filter(channel => channel.type === 0);
+            elements.channelList.innerHTML = channelsHtml || "<div>No text channels found</div>";
+            elements.channelList.style.display = "block";
+            elements.serverList.style.display = "none";
 
-        let channelsHtml = "";
-        textChannels.forEach(channel => {
-            channelsHtml += `<div class="item" onclick="loadChannel('${serverId}', '${channel.id}', '${channel.name}')">#${channel.name}</div>`;
+            showLoading(false);
+        })
+        .catch(function(error) {
+            console.error("Error fetching channels:", error);
+            showError("Failed to load channels. Please try again.");
+            showLoading(false);
         });
-
-        elements.channelList.innerHTML = channelsHtml || "<div>No text channels found</div>";
-        elements.channelList.style.display = "block";
-        elements.serverList.style.display = "none";
-
-        showLoading(false);
-    } catch (error) {
-        console.error("Error fetching channels:", error);
-        showError("Failed to load channels. Please try again.");
-        showLoading(false);
-    }
 }
 
 function loadChannel(serverId, channelId, channelName) {
@@ -138,9 +157,9 @@ function loadChannel(serverId, channelId, channelName) {
     appState.currentServerId = serverId;
     appState.currentView = 'server';
 
-    window.location.hash = `#guild-${serverId}/${channelId}`;
+    window.location.hash = "#guild-" + serverId + "/" + channelId;
 
-    elements.headerTitle.textContent = `#${channelName}`;
+    elements.headerTitle.textContent = "#" + channelName;
     elements.messageInput.disabled = false;
     elements.sendButton.disabled = false;
 
@@ -155,9 +174,9 @@ function loadDM(dmChannelId, userId, username) {
     appState.currentDmUserId = userId;
     appState.currentView = 'dm';
 
-    window.location.hash = `#dm-${userId}`;
+    window.location.hash = "#dm-" + userId;
 
-    elements.headerTitle.textContent = `DM: ${username}`;
+    elements.headerTitle.textContent = "DM: " + username;
     elements.messageInput.disabled = false;
     elements.sendButton.disabled = false;
 
@@ -166,61 +185,65 @@ function loadDM(dmChannelId, userId, username) {
     startMessageRefresh();
 }
 
-async function fetchMessages() {
+function fetchMessages() {
     if (!appState.currentChannelId) return;
 
-    try {
-        showLoading(true);
+    showLoading(true);
 
-        const url = `https://discord.com/api/v9/channels/${appState.currentChannelId}/messages?limit=50`;
-        const res = await apiFetch(url);
+    var url = "https://discord.com/api/v9/channels/" + appState.currentChannelId + "/messages?limit=50";
+    apiFetch(url)
+        .then(function(res) {
+            if (!res.ok) throw new Error("Failed to fetch messages");
+            return res.json();
+        })
+        .then(function(messages) {
+            appState.messages.set(appState.currentChannelId, messages);
 
-        if (!res.ok) throw new Error("Failed to fetch messages");
+            if (messages.length > 0) {
+                appState.lastMessageId = messages[0].id;
+            }
 
-        const messages = await res.json();
-
-        appState.messages.set(appState.currentChannelId, messages);
-
-        if (messages.length > 0) {
-            appState.lastMessageId = messages[0].id;
-        }
-
-        renderMessages(messages);
-
-        showLoading(false);
-    } catch (error) {
-        console.error("Error fetching messages:", error);
-        showError("Failed to load messages. Please try again.");
-        showLoading(false);
-    }
+            renderMessages(messages);
+            showLoading(false);
+        })
+        .catch(function(error) {
+            console.error("Error fetching messages:", error);
+            showError("Failed to load messages. Please try again.");
+            showLoading(false);
+        });
 }
 
-async function checkNewMessages() {
+function checkNewMessages() {
     if (!appState.currentChannelId || !appState.lastMessageId) return;
 
-    try {
-        const url = `https://discord.com/api/v9/channels/${appState.currentChannelId}/messages?after=${appState.lastMessageId}`;
-        const res = await apiFetch(url);
+    var url = "https://discord.com/api/v9/channels/" + appState.currentChannelId + "/messages?after=" + appState.lastMessageId;
+    apiFetch(url)
+        .then(function(res) {
+            if (!res.ok) return;
+            return res.json();
+        })
+        .then(function(newMessages) {
+            if (newMessages && newMessages.length > 0) {
+                appState.lastMessageId = newMessages[0].id;
 
-        if (!res.ok) return;
+                var currentMessages = appState.messages.get(appState.currentChannelId) || [];
+                var reversedNewMessages = newMessages.slice().reverse();
+                
+                var updatedMessages = [];
+                for (var i = 0; i < reversedNewMessages.length; i++) {
+                    updatedMessages.push(reversedNewMessages[i]);
+                }
+                for (var j = 0; j < currentMessages.length; j++) {
+                    updatedMessages.push(currentMessages[j]);
+                }
 
-        const newMessages = await res.json();
-
-        if (newMessages.length > 0) {
-
-            appState.lastMessageId = newMessages[0].id;
-
-            const currentMessages = appState.messages.get(appState.currentChannelId) || [];
-
-            const updatedMessages = [...newMessages.reverse(), ...currentMessages];
-
-            appState.messages.set(appState.currentChannelId, updatedMessages);
-
-            renderMessages(updatedMessages);
-        }
-    } catch (error) {
-        console.error("Error checking for new messages:", error);
-    }
+                appState.messages.set(appState.currentChannelId, updatedMessages);
+                renderMessages(updatedMessages);
+            }
+        })
+        .catch(function(error) {
+            console.error("Error checking for new messages:", error);
+        });
 }
 
 function renderMessages(messages) {
@@ -229,21 +252,21 @@ function renderMessages(messages) {
         return;
     }
 
-    const sortedMessages = [...messages].sort((a, b) => {
+    var sortedMessages = messages.slice();
+    sortedMessages.sort(function(a, b) {
         return new Date(a.timestamp) - new Date(b.timestamp);
     });
 
-    let messagesHtml = "";
-    sortedMessages.forEach(msg => {
-        messagesHtml += `
-            <div class="message">
-                <strong>${msg.author.username}:</strong> ${formatMessageContent(msg.content)}
-            </div>
-        `;
-    });
+    var messagesHtml = "";
+    for (var i = 0; i < sortedMessages.length; i++) {
+        var msg = sortedMessages[i];
+        messagesHtml += 
+            '<div class="message">' +
+            '<strong>' + msg.author.username + ':</strong> ' + formatMessageContent(msg.content) +
+            '</div>';
+    }
 
     elements.messageArea.innerHTML = messagesHtml;
-
     elements.messageArea.scrollTop = elements.messageArea.scrollHeight;
 }
 
@@ -254,28 +277,26 @@ function formatMessageContent(content) {
     );
 }
 
-async function sendMessage() {
-    const messageContent = elements.messageInput.value.trim();
+function sendMessage() {
+    var messageContent = elements.messageInput.value.trim();
     if (!messageContent || !appState.currentChannelId) return;
 
-    try {
-        const url = `https://discord.com/api/v9/channels/${appState.currentChannelId}/messages`;
-        const body = { content: messageContent };
+    var url = "https://discord.com/api/v9/channels/" + appState.currentChannelId + "/messages";
+    var body = { content: messageContent };
 
-        const res = await apiFetch(url, {
-            method: 'POST',
-            body: JSON.stringify(body)
-        });
-
+    apiFetch(url, {
+        method: 'POST',
+        body: JSON.stringify(body)
+    })
+    .then(function(res) {
         if (!res.ok) throw new Error("Failed to send message");
-
         elements.messageInput.value = "";
-
-        await fetchMessages();
-    } catch (error) {
+        return fetchMessages();
+    })
+    .catch(function(error) {
         console.error("Error sending message:", error);
         showError("Failed to send message. Please try again.");
-    }
+    });
 }
 
 function navigateBack() {
@@ -292,56 +313,63 @@ function navigateBack() {
 }
 
 function handleHashChange() {
-    const hash = window.location.hash.substring(1);
+    var hash = window.location.hash.substring(1);
 
     if (hash.startsWith("guild-")) {
-        const parts = hash.split("/");
+        var parts = hash.split("/");
         if (parts.length > 1) {
-            const serverId = parts[0].substring(6);
-            const channelId = parts[1];
+            var serverId = parts[0].substring(6);
+            var channelId = parts[1];
             loadChannelFromHash(serverId, channelId);
         }
     } else if (hash.startsWith("dm-")) {
-        const userId = hash.split("-")[1];
+        var userId = hash.split("-")[1];
         loadDmFromHash(userId);
     }
 }
 
-async function loadChannelFromHash(serverId, channelId) {
-    try {
-        const res = await apiFetch(`https://discord.com/api/v9/channels/${channelId}`);
-        if (!res.ok) throw new Error("Failed to fetch channel info");
-
-        const channel = await res.json();
-        loadChannel(serverId, channelId, channel.name);
-    } catch (error) {
-        console.error("Error loading channel from hash:", error);
-    }
+function loadChannelFromHash(serverId, channelId) {
+    apiFetch("https://discord.com/api/v9/channels/" + channelId)
+        .then(function(res) {
+            if (!res.ok) throw new Error("Failed to fetch channel info");
+            return res.json();
+        })
+        .then(function(channel) {
+            loadChannel(serverId, channelId, channel.name);
+        })
+        .catch(function(error) {
+            console.error("Error loading channel from hash:", error);
+        });
 }
 
-async function loadDmFromHash(userId) {
-    try {
-        const res = await apiFetch("https://discord.com/api/v9/users/@me/channels");
-        if (!res.ok) throw new Error("Failed to fetch DMs");
-
-        const dms = await res.json();
-        const dm = dms.find(dm =>
-            dm.recipients &&
-            dm.recipients.length > 0 &&
-            dm.recipients[0].id === userId
-        );
-
-        if (dm) {
-            loadDM(dm.id, userId, dm.recipients[0].username);
-        }
-    } catch (error) {
-        console.error("Error loading DM from hash:", error);
-    }
+function loadDmFromHash(userId) {
+    apiFetch("https://discord.com/api/v9/users/@me/channels")
+        .then(function(res) {
+            if (!res.ok) throw new Error("Failed to fetch DMs");
+            return res.json();
+        })
+        .then(function(dms) {
+            var dm = null;
+            for (var i = 0; i < dms.length; i++) {
+                if (dms[i].recipients && 
+                    dms[i].recipients.length > 0 && 
+                    dms[i].recipients[0].id === userId) {
+                    dm = dms[i];
+                    break;
+                }
+            }
+            
+            if (dm) {
+                loadDM(dm.id, userId, dm.recipients[0].username);
+            }
+        })
+        .catch(function(error) {
+            console.error("Error loading DM from hash:", error);
+        });
 }
 
 function startMessageRefresh() {
     stopMessageRefresh();
-
     appState.refreshInterval = setInterval(checkNewMessages, 5000);
 }
 
@@ -354,7 +382,6 @@ function stopMessageRefresh() {
 
 function resetAppState() {
     stopMessageRefresh();
-
     appState.lastMessageId = null;
     elements.messageArea.innerHTML = "";
 }
@@ -390,50 +417,52 @@ function logout() {
     window.location.href = "login.html";
 }
 
-//i used to use fetch hhere but i tried to switch to xhr instead
-function apiFetch(url, options = {}) {
-return new Promise((resolve, reject) => {
-const xhr = new XMLHttpRequest();
+function apiFetch(url, options) {
+    options = options || {};
+    
+    return new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
 
-const method = options.method || 'GET';
-xhr.open(method, url, true);
+        var method = options.method || 'GET';
+        xhr.open(method, url, true);
 
-xhr.setRequestHeader("Authorization", appState.token);
-xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Authorization", appState.token);
+        xhr.setRequestHeader("Content-Type", "application/json");
 
-if (options.headers) {
-    Object.keys(options.headers).forEach(header => {
-        xhr.setRequestHeader(header, options.headers[header]);
+        if (options.headers) {
+            for (var header in options.headers) {
+                if (options.headers.hasOwnProperty(header)) {
+                    xhr.setRequestHeader(header, options.headers[header]);
+                }
+            }
+        }
+
+        xhr.onload = function() {
+            var response = {
+                ok: xhr.status >= 200 && xhr.status < 300,
+                status: xhr.status,
+                statusText: xhr.statusText,
+                json: function() {
+                    return new Promise(function(resolve, reject) {
+                        try {
+                            resolve(JSON.parse(xhr.responseText));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    });
+                }
+            };
+            resolve(response);
+        };
+
+        xhr.onerror = function() {
+            reject(new Error("Network error"));
+        };
+
+        if (options.body) {
+            xhr.send(options.body);
+        } else {
+            xhr.send();
+        }
     });
 }
-
-xhr.onload = function() {
-    const response = {
-        ok: xhr.status >= 200 && xhr.status < 300,
-        status: xhr.status,
-        statusText: xhr.statusText,
-        json: function() {
-            return new Promise((resolve, reject) => {
-                try {
-                    resolve(JSON.parse(xhr.responseText));
-                } catch (e) {
-                    reject(e);
-                }
-            });
-        }
-    };
-    resolve(response);
-};
-
-xhr.onerror = function() {
-    reject(new Error("Network error"));
-};
-
-if (options.body) {
-    xhr.send(options.body);
-} else {
-    xhr.send();
-}
-});
-}
- 
