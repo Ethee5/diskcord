@@ -117,6 +117,7 @@ function renderDMList(dms) {
     elements.dmList.innerHTML = dmHtml || "<div>No direct messages found</div>";
 }
 
+
 function loadServerChannels(serverId, serverName) {
     resetAppState();
     appState.currentServerId = serverId;
@@ -266,11 +267,18 @@ function renderMessages(messages) {
     var messagesHtml = "";
     for (var i = 0; i < sortedMessages.length; i++) {
         var msg = sortedMessages[i];
-        messagesHtml += 
-            '<div class="message">' +
-            '<strong>' + msg.author.username + ':</strong> ' + formatMessageContent(msg.content) +
-            '</div>';
+        var avatarUrl = msg.author.avatar 
+            ? "https://cdn.discordapp.com/avatars/" + msg.author.id + "/" + msg.author.avatar + ".png" 
+            : "https://cdn.discordapp.com/embed/avatars/0.png";
+    
+        messagesHtml += '<div class="message">' +
+                            '<img src="' + avatarUrl + '" class="avatar" alt="' + msg.author.username + '" />' +
+                            '<div class="message-content">' +
+                                '<strong>' + msg.author.username + '</strong> ' + formatMessageContent(msg.content) +
+                            '</div>' +
+                        '</div>';
     }
+    
 
     elements.messageArea.innerHTML = messagesHtml;
     elements.messageArea.scrollTop = elements.messageArea.scrollHeight;
