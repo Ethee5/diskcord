@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disk Cord</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="header-bar">
+        <button onclick="toggleMenu()">☰</button>
+        <h2 id="headerTitle">Disk Cord</h2>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <button id="backButton" style="display: none;" onclick="navigateBack()">⬅ Back</button>
+        <h3 id="sidebarTitle">Servers</h3>
+        <div id="serverList"></div>
+        <div id="channelList" style="display: none;"></div>
+        <h3>Direct Messages</h3>
+        <div id="dmList"></div>
+        <button onclick="logout()" style="margin-top: 20px;">Logout</button>
+    </div>
+
+    <div class="content">
+        <div id="serverView">
+            <div class="chat-box">
+                <div id="loadingIndicator" class="loading" style="display: none;">Loading messages...</div>
+                <div class="message-area" id="messageArea">
+                    <div class="message">Select a server or DM to start chatting</div>
+                </div>
+                <div class="input-area">
+                    <input type="text" id="messageInput" placeholder="Type a message..." disabled />
+                    <button id="sendMessageBtn" onclick="sendMessage()" disabled>➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="app.js"></script>
+  
+</body>
+
+</html>
