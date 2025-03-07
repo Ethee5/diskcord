@@ -48,11 +48,9 @@ function initApp() {
 function toggleMenu() {
     if (appState.sidebarVisible) {
         elements.sidebar.className = "sidebar";
-        elements.content.className = "content";
         appState.sidebarVisible = false;
     } else {
         elements.sidebar.className = "sidebar sidebar-visible";
-        elements.content.className = "content content-shifted";
         appState.sidebarVisible = true;
     }
 }
