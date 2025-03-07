@@ -45,6 +45,14 @@ function initApp() {
     handleHashChange();
 }
 
+elements.messageInput.addEventListener("keypress", function (event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+    }
+});
+
+
 function toggleMenu() {
     if (appState.sidebarVisible) {
         elements.sidebar.className = "sidebar";
@@ -464,3 +472,4 @@ function apiFetch(url, options) {
         }
     });
 }
+
