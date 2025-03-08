@@ -6,24 +6,34 @@ function MessageManager(app) {
     //the rest is obvious from the name
     this.fetchMessages = function() {
         if (!this.app.state.currentChannelId) return;
-
+    
         this.app.uiManager.showLoading(true);
+    
+        var requestUrl = "https://discord.com/api/v9/channels/" + this.app.state.currentChannelId + "/messages";
 
-        var url = "https://discord.com/api/v9/channels/" + this.app.state.currentChannelId + "/messages?limit=50";
+        if (this.app.state.lastMessageId) {
+            requestUrl += "?after=" + this.app.state.lastMessageId;
+        } else {
+            requestUrl += "?limit=50";
+        }
         
-        this.app.apiService.fetch(url)
+        this.app.apiService.fetch(requestUrl)
             .then(function(res) {
                 if (!res.ok) throw new Error("Failed to fetch messages");
                 return res.json();
             })
+        
             .then(function(messages) {
-                this.app.state.messages[this.app.state.currentChannelId] = messages;
+                if (!messages || messages.length === 0) return;
 
-                if (messages.length > 0) {
-                    this.app.state.lastMessageId = messages[0].id;
-                }
+                const currentMessages = this.app.state.messages[this.app.state.currentChannelId] || [];
+                const newMessages = messages.reverse();
 
-                this.renderMessages(messages);
+                this.app.state.messages[this.app.state.currentChannelId] = currentMessages.concat(newMessages);
+
+                this.app.state.lastMessageId = newMessages[newMessages.length - 1].id;
+    
+                this.renderMessages(this.app.state.messages[this.app.state.currentChannelId]);
                 this.app.uiManager.showLoading(false);
             }.bind(this))
             .catch(function(error) {
@@ -32,11 +42,10 @@ function MessageManager(app) {
                 this.app.uiManager.showLoading(false);
             }.bind(this));
     };
-
-
+    
     this.checkNewMessages = function() {
         if (!this.app.state.currentChannelId || !this.app.state.lastMessageId) return;
-
+    
         var url = "https://discord.com/api/v9/channels/" + this.app.state.currentChannelId + "/messages?after=" + this.app.state.lastMessageId;
         
         this.app.apiService.fetch(url)
@@ -45,28 +54,22 @@ function MessageManager(app) {
                 return res.json();
             })
             .then(function(newMessages) {
-                if (newMessages && newMessages.length > 0) {
-                    this.app.state.lastMessageId = newMessages[0].id;
-
-                    var currentMessages = this.app.state.messages[this.app.state.currentChannelId] || [];
-                    var reversedNewMessages = newMessages.slice().reverse();
-                    
-                    var updatedMessages = [];
-                    for (var i = 0; i < reversedNewMessages.length; i++) {
-                        updatedMessages.push(reversedNewMessages[i]);
-                    }
-                    for (var j = 0; j < currentMessages.length; j++) {
-                        updatedMessages.push(currentMessages[j]);
-                    }
-
-                    this.app.state.messages[this.app.state.currentChannelId] = updatedMessages;
-                    this.renderMessages(updatedMessages);
-                }
+                if (!newMessages || newMessages.length === 0) return;
+    
+                var currentMessages = this.app.state.messages[this.app.state.currentChannelId] || [];
+                var reversedNewMessages = newMessages.slice().reverse();
+    
+                this.app.state.messages[this.app.state.currentChannelId] = currentMessages.concat(reversedNewMessages);
+    
+                this.app.state.lastMessageId = reversedNewMessages[reversedNewMessages.length - 1].id;
+    
+                this.renderMessages(this.app.state.messages[this.app.state.currentChannelId]);
             }.bind(this))
             .catch(function(error) {
                 console.error("Error checking for new messages:", error);
             });
     };
+    
 
    
     this.renderMessages = function(messages) {
