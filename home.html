@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Disk Cord</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style/style.css">
 </head>
 
 <body>
@@ -35,13 +35,20 @@
                     <button id="uploadButton">+</button>
                     <input type="file" id="fileInput" style="display: none;">
                     <input type="text" id="messageInput" placeholder="Type a message..." disabled />
-                    <button id="sendMessageBtn" onclick="sendMessage()" disabled>➤</button>
+                    <button id="sendMessageBtn" onclick="app.messageManager.sendMessage()" disabled>➤</button>
                 </div>                
             </div>
         </div>
     </div>
-    <script src="polyfills.js"></script>
+    <script src="client/apiService.js"></script>
+    <script src="client/channelManager.js"></script>
+    <script src="helpers/polyfills.js"></script>
+    <script src="managers/serverManager.js"></script>
+    <script src="managers/messageManager.js"></script>
+    <script src="ui/uiManager.js"></script>
+    <script src="ui/navigationManager.js"></script>
     <script src="app.js"></script>
+    <script src="main.js"></script>
 </body>
 
 </html>
