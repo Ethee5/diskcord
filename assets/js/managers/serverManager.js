@@ -58,33 +58,59 @@ function ServerManager(app) {
         this.app.messageManager.resetAppState();
         this.app.state.currentServerId = serverId;
         this.app.state.currentView = 'server';
-
+    
         this.app.uiManager.showLoading(true);
         this.app.uiManager.updateNavigation('server', serverName);
-
+    
         this.app.apiService.fetch("https://discord.com/api/v9/guilds/" + serverId + "/channels")
             .then(function(res) {
                 if (!res.ok) throw new Error("Failed to fetch channels");
                 return res.json();
             })
             .then(function(channels) {
-                var textChannels = [];
+                var categories = {}; 
+                var uncategorizedChannels = [];
+                
+                channels.sort(function(a, b) { return a.position - b.position; });
+                
                 for (var i = 0; i < channels.length; i++) {
-                    if (channels[i].type === 0) {
-                        textChannels.push(channels[i]);
+                    var channel = channels[i];
+                    if (channel.type === 4) { 
+                        categories[channel.id] = { name: channel.name, channels: [] };
+                    } else if (channel.parent_id && categories[channel.parent_id]) {
+                        categories[channel.parent_id].channels.push(channel);
+                    } else {
+                        uncategorizedChannels.push(channel);
                     }
                 }
-
+                
                 var channelsHtml = "";
-                for (var j = 0; j < textChannels.length; j++) {
-                    var channel = textChannels[j];
-                    channelsHtml += '<div class="item" onclick="app.channelManager.loadChannel(\'' + serverId + '\', \'' + channel.id + '\', \'' + channel.name + '\')">#' + channel.name + '</div>';
+                
+                // categorized channels
+                var categoryKeys = Object.keys(categories);
+                for (var j = 0; j < categoryKeys.length; j++) {
+                    var category = categories[categoryKeys[j]];
+                    channelsHtml += "<div class='category'>" + category.name + "</div>";
+                    for (var k = 0; k < category.channels.length; k++) {
+                        var ch = category.channels[k];
+                        channelsHtml += "<div class='item' onclick=\"app.channelManager.loadChannel('" + serverId + "', '" + ch.id + "', '" + ch.name + "')\">#" + ch.name + "</div>";
+                    }
                 }
-
-                this.app.uiManager.elements.channelList.innerHTML = channelsHtml || "<div>No text channels found</div>";
+                
+                // uncategorized channels
+                if (uncategorizedChannels.length > 0) {
+                    channelsHtml += "<div class='category'>Uncategorized</div>";
+                    for (var m = 0; m < uncategorizedChannels.length; m++) {
+                        var ch = uncategorizedChannels[m];
+                        channelsHtml += "<div class='item' onclick=\"app.channelManager.loadChannel('" + serverId + "', '" + ch.id + "', '" + ch.name + "')\">#" + ch.name + "</div>";
+                    }
+                }
+                
+    
+                this.app.uiManager.elements.channelList.innerHTML = channelsHtml || "<div>No channels found</div>";
                 this.app.uiManager.elements.channelList.style.display = "block";
                 this.app.uiManager.elements.serverList.style.display = "none";
-
+    
                 this.app.uiManager.showLoading(false);
             }.bind(this))
             .catch(function(error) {
@@ -92,5 +118,5 @@ function ServerManager(app) {
                 this.app.uiManager.showError("Failed to load channels. Please try again.");
                 this.app.uiManager.showLoading(false);
             }.bind(this));
-    };
+    };    
 }
