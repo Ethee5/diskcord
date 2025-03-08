@@ -1,0 +1,72 @@
+@font-face {
+    font-family: 'Segoe';
+    src: url('../fonts/Segoe.woff') format('woff'), /* Most 2014 browsers */
+         url('../fonts/Segoe.ttf') format('truetype'); /* Safari, Android 4.4- */
+
+    font-style: normal;
+}
+
+body {
+    font-family: 'Segoe', Arial, sans-serif;
+    text-align: center; 
+    background-color: #000000;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    padding: 25px;
+    width: 100%;
+    text-align: left;
+}
+
+h2 {
+    color: #ffffff;
+    text-align: center;
+}
+
+input {
+    width: calc(100% - 20px);
+    padding: 12px;
+    margin-top: 10px;
+    background: #1e1f22;
+    border: 1px solid #202225;
+    border-radius: 5px;
+    color: #fff;
+    outline: none;
+    font-size: 14px;
+}
+
+input::placeholder {
+    color: #b9bbbe;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: #5865f2; /* Discord Blue */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+button:hover {
+    background: #4752c4; /* Darker shade on hover */
+}
+
+.info {
+    font-size: 0.9em;
+    color: #b9bbbe;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}

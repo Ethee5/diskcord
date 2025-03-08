@@ -3,31 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>logen</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        input, button { padding: 10px; margin: 5px; }
-    </style>
+    <title>Login - BB10 Discord Client</title>
+    <link rel="stylesheet" href="assets/css/indexstyle.css">
 </head>
 <body>
 
-    <h2>Login</h2>
+    <div class="container">
+        <h2>Disk Cord</h2>
 
-    <input type="text" id="tokenInput" placeholder="hey b0ss, can i haz a token pls" size="50">
-    <button onclick="login()">Login</button>
-    <script>
-        function login() {
-            const token = document.getElementById("tokenInput").value;
-            if (!token) {
-                alert("Please enter a token.");
-                return;
-            }
+        <div id="normalLogin">
+            <p class="info">Welcome!! (I need a better name)</p>
+            <input type="email" id="emailInput" placeholder="ey b0ss, mail plz">
+            <input type="password" id="passwordInput" placeholder="ey b0ss, password plz">
+            <button onclick="loginWithCredentials()">Login</button>
+            <button onclick="switchToTokenLogin()">Login with Token Instead</button>
+        </div>
 
-            localStorage.setItem("discordToken", token);
+        <div id="twoFactorAuth" class="hidden">
+            <p class="info">2FA is required. Enter your auth code.</p>
+            <p class="warning">2FA IS CURRENTLY BROKEN, LOGIN WITH TOKEN INSTEAD</p>
+            <button onclick="switchToTokenLogin()">Login with Token Instead</button>
+            <input type="text" id="mfaCodeInput" placeholder="Enter 2FA code">
+            <button onclick="submit2FA()">Submit 2FA</button>
+     
+        </div>
 
-            window.location.href = "home.html";
-        }
-    </script>
+        <div id="tokenLogin" class="hidden">
+            <p class="info">Enter your Discord token to log in.</p>
+            <input type="text" id="tokenInput" placeholder="ey b0ss, token plz">
+            <button onclick="loginWithToken()">Login with Token</button>
+            <button onclick="switchToNormalLogin()">Back to Email Login</button>
+        </div>
+
+        <p class="info">
+            <strong>What is this?</strong><br>
+            This is a custom Discord client for BlackBerry 10 and other old browsers.<br><br>
+            <strong>Why do I need a token?</strong><br>
+            If Discord requires CAPTCHA verification or 2FA, you must log in with a token instead.
+        </p>
+    </div>
+
+    <script src="assets/js/services/authService.js"></script>
 
 </body>
 </html>
