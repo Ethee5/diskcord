@@ -6,8 +6,8 @@
 
 @font-face {
     font-family: 'Segoe';
-    src: url('fonts/Segoe.woff') format('woff'), /* Most 2014 browsers */
-         url('fonts/Segoe.ttf') format('truetype'); /* Safari, Android 4.4- */
+    src: url('../fonts/Segoe.woff') format('woff'), /* Most 2014 browsers */
+         url('../fonts/Segoe.ttf') format('truetype'); /* Safari, Android 4.4- */
 
     font-style: normal;
 }
