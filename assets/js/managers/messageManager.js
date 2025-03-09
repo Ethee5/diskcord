@@ -145,8 +145,12 @@ function MessageManager(app) {
                 content.className = 'message-content';
 
                 var authorName = document.createElement('strong');
-                authorName.textContent = msg.author.username;
+                var timestamp = new Date(msg.timestamp);
+                var formattedTimestamp = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                authorName.textContent = msg.author.username + " • " + formattedTimestamp;
                 content.appendChild(authorName);
+                
      
                 if (msg.referenced_message) {
                     var replyContainer = document.createElement('div');
