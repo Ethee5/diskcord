@@ -1,4 +1,4 @@
-//  handling server related operations
+// handling server related operations
 function ServerManager(app) {
     this.app = app;
 
@@ -34,11 +34,21 @@ function ServerManager(app) {
         
         for (var i = 0; i < servers.length; i++) {
             var server = servers[i];
-            serverHtml += '<div class="item" onclick="app.serverManager.loadServerChannels(\'' + server.id + '\', \'' + server.name + '\')">' + server.name + '</div>';
+            var iconUrl;
+            if (server.icon) {
+                iconUrl = "https://cdn.discordapp.com/icons/" + server.id + "/" + server.icon + ".png";
+            } else {
+                iconUrl = "assets/img/default-server.png";
+            }
+    
+            serverHtml += '<div class="item" onclick="app.serverManager.loadServerChannels(\'' + server.id + '\', \'' + server.name.replace(/'/g, "\\'") + '\')">' +
+                          '<img src="' + iconUrl + '" class="server-icon"> ' + server.name + '</div>';
         }
         
         this.app.uiManager.elements.serverList.innerHTML = serverHtml || "<div>No servers found</div>";
     };
+    
+    
 
     this.renderDMList = function(dms) {
         var dmHtml = "";
@@ -47,12 +57,22 @@ function ServerManager(app) {
             var dm = dms[i];
             var recipient = dm.recipients && dm.recipients.length > 0 ? dm.recipients[0] : null;
             if (recipient) {
-                dmHtml += '<div class="item" onclick="app.channelManager.loadDM(\'' + dm.id + '\', \'' + recipient.id + '\', \'' + recipient.username + '\')">' + recipient.username + '</div>';
+                var avatarUrl;
+                if (recipient.avatar) {
+                    avatarUrl = "https://cdn.discordapp.com/avatars/" + recipient.id + "/" + recipient.avatar + ".png";
+                } else {
+                    avatarUrl = "assets/img/default-avatar.png";
+                }
+    
+                dmHtml += '<div class="item" onclick="app.channelManager.loadDM(\'' + dm.id + '\', \'' + recipient.id + '\', \'' + recipient.username + '\')">' +
+                          '<img src="' + avatarUrl + '" class="user-avatar"> ' + recipient.username + '</div>';
             }
         }
         
         this.app.uiManager.elements.dmList.innerHTML = dmHtml || "<div>No direct messages found</div>";
     };
+    
+    
 
     this.loadServerChannels = function(serverId, serverName) {
         this.app.messageManager.resetAppState();
@@ -106,7 +126,6 @@ function ServerManager(app) {
                     }
                 }
                 
-    
                 this.app.uiManager.elements.channelList.innerHTML = channelsHtml || "<div>No channels found</div>";
                 this.app.uiManager.elements.channelList.style.display = "block";
                 this.app.uiManager.elements.serverList.style.display = "none";
