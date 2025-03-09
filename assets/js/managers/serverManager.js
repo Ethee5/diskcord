@@ -4,7 +4,7 @@ function ServerManager(app) {
 
     this.fetchServersAndDMs = function () {
         this.app.uiManager.showLoading(true);
-
+    
         this.app.apiService.fetch("https://discord.com/api/v9/users/@me/guilds")
             .then(function (serverRes) {
                 if (!serverRes.ok) throw new Error("Failed to fetch servers");
@@ -84,24 +84,27 @@ function ServerManager(app) {
     this.renderDMList = function (dms) {
         var dmHtml = "";
 
+        dms.sort(function (a, b) {
+            return (b.last_message_id || "0") - (a.last_message_id || "0");
+        });
+    
         for (var i = 0; i < dms.length; i++) {
             var dm = dms[i];
             var recipient = dm.recipients && dm.recipients.length > 0 ? dm.recipients[0] : null;
             if (recipient) {
-                var avatarUrl;
-                if (recipient.avatar) {
-                    avatarUrl = "https://cdn.discordapp.com/avatars/" + recipient.id + "/" + recipient.avatar + ".png";
-                } else {
-                    avatarUrl = "assets/img/default-avatar.png";
-                }
-
+                var avatarUrl = recipient.avatar
+                    ? "https://cdn.discordapp.com/avatars/" + recipient.id + "/" + recipient.avatar + ".png"
+                    : "assets/img/default-avatar.png";
+    
                 dmHtml += '<div class="item" onclick="app.channelManager.loadDM(\'' + dm.id + '\', \'' + recipient.id + '\', \'' + recipient.username + '\')">' +
-                    '<img src="' + avatarUrl + '" class="user-avatar"> ' + recipient.username + '</div>';
+                    '<img src="' + avatarUrl + '" class="user-avatar"> ' + recipient.username +
+                    '</div>';
             }
         }
-
+    
         this.app.uiManager.elements.dmList.innerHTML = dmHtml || "<div>No direct messages found</div>";
     };
+    
 
 
     
