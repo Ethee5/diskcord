@@ -1,21 +1,21 @@
 // main 
 var app; // global app instance
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // initialize
     app = new DiskcordApp();
     app.init();
-    
+
     // global functions required for ui events
-    window.navigateBack = function() {
+    window.navigateBack = function () {
         app.navigationManager.navigateBack();
     };
-    
-    window.logout = function() {
+
+    window.logout = function () {
         app.logout();
     };
 
-    window.closeChatPopup = function() {
+    window.closeChatPopup = function () {
         app.uiManager.hideChatPopup();
     };
 });

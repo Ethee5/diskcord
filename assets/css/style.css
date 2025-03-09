@@ -60,6 +60,9 @@ body {
     align-items: center;
 }
 
+#backButton:hover {
+background: #505050;
+}
 .item {
     border-radius: 0;
     margin-bottom: 15px;
@@ -113,9 +116,9 @@ body {
     align-items: center;
     background-color: #222222;
     border-radius: 0;
-    padding: 5px 15px;
-
+    height: 50px;
 }
+
 
 .header button {
     background: none;
@@ -286,7 +289,7 @@ h2 {
     border: none;
     cursor: pointer;
     font-size: 24px;
-    padding: 5px;
+    padding:10px  20px ;
     margin: 0;
     display: inline-flex;
     align-items: center;
@@ -386,4 +389,36 @@ img.emoji {
     vertical-align: middle;
 }
 
+
+
+.channel-list-container,
+.chat-popup {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.channel-list-container.slide-in {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.channel-list-container.slide-out {
+    transform: translateX(30%);
+    opacity: 0;
+}
+
+.chat-popup.slide-in {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.chat-popup.slide-out {
+    transform: translateX(30%);
+    opacity: 0;
+}
+
+.channel-list-container.hidden,
+.chat-popup.hidden {
+    transform: translateY(30%);
+    opacity: 0;
+}
 
