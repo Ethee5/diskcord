@@ -298,7 +298,10 @@ function MessageManager(app) {
 
 function MessageFormatter() {
     this.formatContent = function(content) {
-        var linkedContent = content.replace(
+        var sanitizedContent = content.replace(/<script(.*?)>/gi, "&lt;script$1&gt;")
+                                      .replace(/<\/script>/gi, "&lt;/script&gt;");
+
+        var linkedContent = sanitizedContent.replace(
             /(https?:\/\/[^\s]+)/g,
             '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
         );
@@ -315,7 +318,7 @@ function MessageFormatter() {
         var tempDiv = document.createElement('div');
         tempDiv.innerHTML = linkedContent;
 
-        if(window.twemoji) { 
+        if (window.twemoji) {
             twemoji.base = 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/';
 
             twemoji.parse(tempDiv, {
@@ -324,7 +327,7 @@ function MessageFormatter() {
                 size: '72x72'
             });
         }
-        
+
         return tempDiv.innerHTML;
     };
 }
