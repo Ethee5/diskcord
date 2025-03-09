@@ -28,30 +28,47 @@ function DiskcordApp() {
             return;
         }
 
+        // clear the hash on page load to avoid loading whatever was opened last session
+        if (window.location.hash) {
+            history.replaceState(null, null, ' ');
+        }
+
         // setup event listeners
         this.setupEventListeners();
         
         // load initial data
         this.serverManager.fetchServersAndDMs();
 
+        // open the default tab
+        document.getElementById("defaultOpen").click();
+
         // URL hash
-        window.addEventListener("hashchange", this.navigationManager.handleHashChange.bind(this.navigationManager));
-        this.navigationManager.handleHashChange();
+        var self = this;
+        window.addEventListener("hashchange", function() {
+            self.navigationManager.handleHashChange();
+        });
     };
 
     // setup event listeners
     this.setupEventListeners = function() {
+        var self = this;
+        this.uiManager.elements.messageInput.addEventListener("keydown", function(event) {
+            if (event.keyCode == 13 && !event.shiftKey) {
+                event.preventDefault();
+                self.messageManager.sendMessage();
+            }
+        });
         this.uiManager.elements.messageInput.addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 event.preventDefault();
-                this.messageManager.sendMessage();
+                self.messageManager.sendMessage();
             }
-        }.bind(this));
+        });
     };
 
     // logging out
     this.logout = function() {
         localStorage.removeItem("discordToken");
-        window.location.href = "login.html";
+        window.location.href = "index.html";
     };
 }

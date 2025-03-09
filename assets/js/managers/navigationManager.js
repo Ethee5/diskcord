@@ -20,14 +20,14 @@ function NavigationManager(app) {
 
     this.navigateBack = function() {
         if (this.app.state.currentView === 'server') {
-            this.app.uiManager.elements.channelList.style.display = "none";
-            this.app.uiManager.elements.serverList.style.display = "block";
-            this.app.uiManager.elements.backButton.style.display = "none";
-            this.app.uiManager.elements.sidebarTitle.textContent = "Servers";
+            this.app.uiManager.hideChannelListOverlay();
             this.app.state.currentServerId = null;
             this.app.state.currentView = 'main';
-        }
 
+            this.app.uiManager.elements.serverList.style.display = "block";
+            this.app.uiManager.elements.channelList.style.display = "none";
+        }
+        
         this.resetChatView();
     };
 
