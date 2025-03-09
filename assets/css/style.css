@@ -376,8 +376,14 @@ h2 {
 img.emoji {
     height: 1.2em;
     width: 1.2em;
-    margin: 0 .05em 0 .1em;
-    vertical-align: -0.1em;
+    vertical-align: middle;
     display: inline-block;
 }
+
+.custom-emoji {
+    height: 1.2em;
+    width: 1.2em;
+    vertical-align: middle;
+}
+
 

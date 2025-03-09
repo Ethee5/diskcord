@@ -298,19 +298,26 @@ function MessageManager(app) {
 
 function MessageFormatter() {
     this.formatContent = function(content) {
-
         var linkedContent = content.replace(
             /(https?:\/\/[^\s]+)/g,
             '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
         );
-        
+
+        linkedContent = linkedContent.replace(
+            /<(a?):(\w+):(\d+)>/g,
+            function(match, animated, name, id) {
+                var ext = animated ? "gif" : "png"; 
+                var emojiUrl = "https://cdn.discordapp.com/emojis/" + id + "." + ext;
+                return '<img src="' + emojiUrl + '" alt=":' + name + ':" class="custom-emoji">';
+            }
+        );
 
         var tempDiv = document.createElement('div');
         tempDiv.innerHTML = linkedContent;
+
         if(window.twemoji) { 
-            twemoji.base = 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/'; 
-        }
-        if (window.twemoji) {
+            twemoji.base = 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/';
+
             twemoji.parse(tempDiv, {
                 folder: 'svg',
                 ext: '.svg',
