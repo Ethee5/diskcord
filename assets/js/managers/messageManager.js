@@ -150,9 +150,26 @@ function MessageManager(app) {
 
 function MessageFormatter() {
     this.formatContent = function(content) {
-        return content.replace(
+
+        var linkedContent = content.replace(
             /(https?:\/\/[^\s]+)/g,
             '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
         );
+        
+
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = linkedContent;
+        if(window.twemoji) { 
+            twemoji.base = 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/'; 
+        }
+        if (window.twemoji) {
+            twemoji.parse(tempDiv, {
+                folder: 'svg',
+                ext: '.svg',
+                size: '72x72'
+            });
+        }
+        
+        return tempDiv.innerHTML;
     };
 }

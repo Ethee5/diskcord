@@ -198,3 +198,161 @@ body {
     background-color: #444;
     cursor: not-allowed;
 }
+<<<<<<< Updated upstream
+=======
+
+.tablink:hover {
+    background-color: #222222;
+}
+
+.tablink.active {
+    background-color: transparent;
+    color: white;
+}
+
+h2 {
+    padding: 10px;
+    font-size: 30px;
+    font-weight: 10;
+}
+
+.tabcontent {
+    color: white;
+    display: none;
+    height: calc(100vh - 50px);
+    overflow-y: auto;
+    background-color: #000000;
+    padding-top: 10px;
+}
+
+#channelList .item {
+
+    padding: 10px 20px;
+}
+
+#channelList .item:before {
+    display: none;
+}
+
+#sendMessageBtn {
+    background-color: #00aaff;
+    border-radius: 0;
+    font-size: 20px;
+}
+
+
+.channel-list-container {
+    background-color: #000000;
+    border-radius: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.channel-list-scroll {
+    overflow-y: auto;
+    max-height: calc(100vh - 60px);
+    padding: 10px;
+}
+
+#backButton {
+    background: none;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    padding: 5px;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+}
+
+.tab-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    background-color: #111111;
+    z-index: 98;
+    height: 50px;
+}
+
+.server-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.reply-container {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 5px;
+    border-left: 3px solid #888;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #aaaaaa;
+}
+
+.reply-label {
+    font-size: 0.85em;
+    color: #505050;
+    margin-bottom: 3px;
+    font-weight: 500;
+}
+
+
+.reply-author {
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.reply-content {
+    color: #cccccc;
+}
+
+.attachment-container {
+    margin-top: 5px;
+}
+
+.attachment-image {
+    max-width: 300px;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+.attachment-video {
+    max-width: 300px;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+.attachment-file {
+    color: #00aaff;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.attachment-file:hover {
+    text-decoration: underline;
+}
+
+img.emoji {
+    height: 1.2em;
+    width: 1.2em;
+    margin: 0 .05em 0 .1em;
+    vertical-align: -0.1em;
+    display: inline-block;
+}
+>>>>>>> Stashed changes

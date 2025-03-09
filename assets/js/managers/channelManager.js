@@ -11,7 +11,12 @@ function ChannelManager(app) {
 
         window.location.hash = "#guild-" + serverId + "/" + channelId;
 
+<<<<<<< Updated upstream
         this.app.uiManager.elements.headerTitle.textContent = "#" + channelName;
+=======
+        this.app.uiManager.elements.chatTitle.innerHTML = twemoji.parse("#" + channelName);
+
+>>>>>>> Stashed changes
         this.app.uiManager.elements.messageInput.disabled = false;
         this.app.uiManager.elements.sendButton.disabled = false;
 
