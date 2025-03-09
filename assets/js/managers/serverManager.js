@@ -41,7 +41,7 @@ function ServerManager(app) {
                 iconUrl = "assets/img/default-server.png";
             }
     
-            serverHtml += '<div class="item" onclick="app.serverManager.loadServerChannels(\'' + server.id + '\', \'' + server.name + '\')">' +
+            serverHtml += '<div class="item" onclick="app.serverManager.loadServerChannels(\'' + server.id + '\', \'' + server.name.replace(/'/g, "\\'") + '\')">' +
                           '<img src="' + iconUrl + '" class="server-icon"> ' + server.name + '</div>';
         }
         
