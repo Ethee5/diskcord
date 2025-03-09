@@ -10,13 +10,8 @@ function ChannelManager(app) {
         this.app.state.currentView = 'server';
 
         window.location.hash = "#guild-" + serverId + "/" + channelId;
-
-        this.app.uiManager.elements.headerTitle.textContent = "#" + channelName;
-
+        
         this.app.uiManager.elements.chatTitle.innerHTML = twemoji.parse("#" + channelName);
-
-
-        this.app.uiManager.elements.chatTitle.textContent = "#" + channelName;
 
         this.app.uiManager.elements.messageInput.disabled = false;
         this.app.uiManager.elements.sendButton.disabled = false;
