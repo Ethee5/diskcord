@@ -12,6 +12,7 @@
 }
 
 body {
+    font-family: 'Segoe', Arial, sans-serif;
     font-weight: 100;
     line-height: 1.5;
     overflow-x: hidden;
@@ -63,6 +64,7 @@ body {
 .item {
     border-radius: 0;
     margin-bottom: 15px;
+    font-size: 17px;
     cursor: pointer;
     transition: background-color 0.2s;
     display: flex;
@@ -70,15 +72,6 @@ body {
     padding: 5px 10px;
 }
 
-.item:before {
-    content: '';
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    background-color: #ffffff;
-    border-radius: 50%;
-    margin-right: 15px;
-}
 
 .item:hover {
     background-color: #111111;
@@ -301,3 +294,18 @@ h2 {
     height: 50px;
 }
 
+.server-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    vertical-align: middle;
+}

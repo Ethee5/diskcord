@@ -15,7 +15,7 @@
             <div id="serverList"></div>
             <div id="channelListContainer" class="channel-list-container" style="display: none;">
                 <div class="header">
-                    <button id="backButton" onclick="navigateBack()">⬅</button>
+                    <button id="backButton" onclick="navigateBack()"><</button>
                     <h3 id="serverTitle">Server name</h3>
                 </div>
                 <div class="channel-list-scroll">
@@ -37,21 +37,33 @@
 
     <div id="Profile" class="tabcontent">
         <div class="section">
-            <h3>Profile</h3>
-            <p>Get in touch, or swing by for a cup of coffee.</p>
+            <div id="Profile" class="tabcontent">
+                <div class="section">
+                    <h3>Profile</h3>
+                    <div class="profile-container">
+                        <img id="avatar" src="" alt="User Avatar">
+                        <p><strong>ID:</strong> <span id="userId"></span></p>
+                        <p><strong>Username:</strong> <span id="username"></span></p>
+                        <p><strong>Bio:</strong> <span id="bio"></span></p>
+                        <p><strong>Email:</strong> <span id="email"></span></p>
+                        <p><strong>Flags:</strong> <span id="flags"></span></p>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
 
 
     <div id="chatPopup" class="chat-popup" style="display:none;">
         <div class="header">
-            <button id="backButton" onclick="closeChatPopup()">⬅</button>
+            <button id="backButton" onclick="closeChatPopup()"><</button>
             <h3 id="chatTitle">#channel-name</h3>
 
         </div>
-        <div id="loadingIndicator" class="loading" style="display: none;">Loading messages...</div>
+        <div id="loadingIndicator" class="loading" style="display: none;"></div>
         <div class="message-area" id="messageArea">
-            <div class="message">Select a server or DM to start chatting</div>
+            <div class="message"></div>
         </div>
 
         <div class="input-area">
@@ -69,8 +81,6 @@
         <button class="tablink" onclick="openPage('DMs', this)">DMs</button>
         <button class="tablink" onclick="openPage('Profile', this)">Profile</button>
     </div>
-
-
 
     <script src="assets/js/services/apiService.js"></script>
     <script src="assets/js/managers/channelManager.js"></script>

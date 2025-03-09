@@ -52,6 +52,12 @@ function DiskcordApp() {
     // setup event listeners
     this.setupEventListeners = function() {
         var self = this;
+        this.uiManager.elements.messageInput.addEventListener("keydown", function(event) {
+            if (event.keyCode == 13 && !event.shiftKey) {
+                event.preventDefault();
+                self.messageManager.sendMessage();
+            }
+        });
         this.uiManager.elements.messageInput.addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 event.preventDefault();

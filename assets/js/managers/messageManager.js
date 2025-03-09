@@ -1,4 +1,4 @@
-//  handling message related operations
+//handling message related operations
 function MessageManager(app) {
     this.app = app;
     this.messageFormatter = new MessageFormatter();
@@ -52,21 +52,34 @@ function MessageManager(app) {
                 if (!newMessages || newMessages.length === 0) return;
                 
                 var currentMessages = this.app.state.messages[this.app.state.currentChannelId] || [];
-                var currentMessageIds = new Set(currentMessages.map(function(msg) { return msg.id; }));
+                
+                var existingMessageIds = {};
+                for (var i = 0; i < currentMessages.length; i++) {
+                    existingMessageIds[currentMessages[i].id] = true;
+                }
 
-                var uniqueNewMessages = newMessages.filter(function(msg) {
-                    return !currentMessageIds.has(msg.id);
-                });
+                var uniqueNewMessages = [];
+                for (var j = 0; j < newMessages.length; j++) {
+                    if (!existingMessageIds[newMessages[j].id]) {
+                        uniqueNewMessages.push(newMessages[j]);
+                    }
+                }
                 
                 if (uniqueNewMessages.length === 0) return;
 
-                var reversedNewMessages = uniqueNewMessages.slice().reverse();
-
-                if (reversedNewMessages.length > 0) {
-                    this.app.state.lastMessageId = reversedNewMessages[reversedNewMessages.length - 1].id;
+                uniqueNewMessages.sort(function(a, b) {
+                    return new Date(a.timestamp) - new Date(b.timestamp);
+                });
+    
+                if (uniqueNewMessages.length > 0) {
+                    this.app.state.lastMessageId = uniqueNewMessages[uniqueNewMessages.length - 1].id;
                 }
 
-                this.app.state.messages[this.app.state.currentChannelId] = currentMessages.concat(reversedNewMessages);
+                for (var k = 0; k < uniqueNewMessages.length; k++) {
+                    currentMessages.push(uniqueNewMessages[k]);
+                }
+                
+                this.app.state.messages[this.app.state.currentChannelId] = currentMessages;
 
                 this.renderMessages(this.app.state.messages[this.app.state.currentChannelId]);
             }.bind(this))
@@ -74,7 +87,6 @@ function MessageManager(app) {
                 console.error("Error checking for new messages:", error);
             });
     };
-    
 
    
     this.renderMessages = function(messages) {
@@ -82,30 +94,90 @@ function MessageManager(app) {
             this.app.uiManager.elements.messageArea.innerHTML = "<div class='message'>No messages in this channel yet. Start a conversation!</div>";
             return;
         }
-
+    
         var sortedMessages = messages.slice();
         sortedMessages.sort(function(a, b) {
             return new Date(a.timestamp) - new Date(b.timestamp);
         });
 
-        var messagesHtml = "";
+        var messagesContainer;
+        var firstRender = false;
         
+        messagesContainer = this.app.uiManager.elements.messageArea.querySelector('.messages-container');
+        if (!messagesContainer) {
+            messagesContainer = document.createElement('div');
+            messagesContainer.className = 'messages-container';
+            this.app.uiManager.elements.messageArea.innerHTML = '';
+            this.app.uiManager.elements.messageArea.appendChild(messagesContainer);
+            firstRender = true;
+        }
+
+        var wasAtBottom = this.isNearBottom(this.app.uiManager.elements.messageArea);
+
         for (var i = 0; i < sortedMessages.length; i++) {
             var msg = sortedMessages[i];
-            var avatarUrl = msg.author.avatar 
-                ? "https://cdn.discordapp.com/avatars/" + msg.author.id + "/" + msg.author.avatar + ".png" 
-                : "https://cdn.discordapp.com/embed/avatars/0.png";
-        
-            messagesHtml += '<div class="message">' +
-                                '<img src="' + avatarUrl + '" class="avatar" alt="' + msg.author.username + '" />' +
-                                '<div class="message-content">' +
-                                    '<strong>' + msg.author.username + '</strong> ' + this.messageFormatter.formatContent(msg.content) +
-                                '</div>' +
-                            '</div>';
+            var messageId = msg.id;
+
+            var existingMessage = null;
+            var messageElements = messagesContainer.getElementsByClassName('message');
+            for (var j = 0; j < messageElements.length; j++) {
+                if (messageElements[j].getAttribute('data-message-id') === messageId) {
+                    existingMessage = messageElements[j];
+                    break;
+                }
+            }
+            
+            if (!existingMessage) {
+                var avatarUrl = msg.author.avatar 
+                    ? "https://cdn.discordapp.com/avatars/" + msg.author.id + "/" + msg.author.avatar + ".png" 
+                    : "https://cdn.discordapp.com/embed/avatars/0.png";
+                
+                var newMessage = document.createElement('div');
+                newMessage.className = 'message';
+                newMessage.setAttribute('data-message-id', messageId);
+                
+                var avatar = document.createElement('img');
+                avatar.src = avatarUrl;
+                avatar.className = 'avatar';
+                avatar.alt = msg.author.username;
+                
+                var content = document.createElement('div');
+                content.className = 'message-content';
+                
+                var authorName = document.createElement('strong');
+                authorName.textContent = msg.author.username;
+                
+                content.appendChild(authorName);
+                content.appendChild(document.createTextNode(' ' + msg.content));
+
+                content.innerHTML = authorName.outerHTML + ' ' + this.messageFormatter.formatContent(msg.content);
+                
+                newMessage.appendChild(avatar);
+                newMessage.appendChild(content);
+
+                messagesContainer.appendChild(newMessage);
+            } else {
+                var contentElement = existingMessage.querySelector('.message-content');
+                var newContent = '<strong>' + msg.author.username + '</strong> ' + this.messageFormatter.formatContent(msg.content);
+
+                if (contentElement.innerHTML !== newContent) {
+                    contentElement.innerHTML = newContent;
+                }
+            }
         }
-        
-        this.app.uiManager.elements.messageArea.innerHTML = messagesHtml;
-        this.app.uiManager.elements.messageArea.scrollTop = this.app.uiManager.elements.messageArea.scrollHeight;
+
+        if (firstRender || wasAtBottom) {
+            this.app.uiManager.elements.messageArea.scrollTop = this.app.uiManager.elements.messageArea.scrollHeight;
+        }
+    };
+
+    this.isNearBottom = function(element) {
+        return element.scrollHeight - element.scrollTop - element.clientHeight < 50;
+    };
+
+    this.isScrolledToBottom = function() {
+        var element = this.app.uiManager.elements.messageArea;
+        return element.scrollHeight - element.scrollTop - element.clientHeight < 50;
     };
 
  
@@ -134,7 +206,7 @@ function MessageManager(app) {
   
     this.startMessageRefresh = function() {
         this.stopMessageRefresh();
-        // fix: add timeout so it doesnt load twice (still broken tho)
+        // fix: add timeout so it doesnt load twice 
         setTimeout(function() {
             this.app.state.refreshInterval = setInterval(this.checkNewMessages.bind(this), 5000);
         }.bind(this), 5000); 

@@ -24,7 +24,7 @@ function UIManager() {
         document.querySelector(".tab-container").style.display = "none";
         
         for (var i = 0; i < this.elements.tabButtons.length; i++) {
-            this.elements.tabButtons[i].style.opacity = "0.5";
+            this.elements.tabButtons[i].style.display = "none";
         }
     };
     
@@ -33,7 +33,7 @@ function UIManager() {
         document.querySelector(".tab-container").style.display = "flex";
         
         for (var i = 0; i < this.elements.tabButtons.length; i++) {
-            this.elements.tabButtons[i].style.opacity = "1";
+            this.elements.tabButtons[i].style.display = "block";
         }
     };
 
@@ -71,8 +71,6 @@ function UIManager() {
     };
 
     this.resetChatView = function () {
-        this.elements.chatTitle.textContent = "Disk Cord";
-        this.elements.messageArea.innerHTML = "<div class='message'>Select a server or DM to start chatting</div>";
         this.elements.messageInput.disabled = true;
         this.elements.sendButton.disabled = true;
         this.hideChatPopup();
@@ -101,7 +99,7 @@ window.closeChatPopup = function () {
     app.uiManager.hideChatPopup();
 };
 window.navigateBack = function () {
-    app.navigationManager.navigateToServers();
+    app.navigationManager.navigateBack();
 };
 
 document.addEventListener("DOMContentLoaded", function () {
