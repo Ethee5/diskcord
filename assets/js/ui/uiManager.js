@@ -17,6 +17,7 @@ function UIManager() {
         mainContent: document.getElementById("mainContent"),
         chatPopup: document.getElementById("chatPopup"),
         tabButtons: document.getElementsByClassName("tablink")
+        
     };
 
     this.showChannelListOverlay = function () {
@@ -104,4 +105,8 @@ window.navigateBack = function () {
 
 document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("defaultOpen").click();
+});
+
+document.getElementById("uploadButton").addEventListener("click", function () {
+    document.getElementById("fileInput").click();
 });

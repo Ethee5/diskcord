@@ -99,7 +99,7 @@ function MessageManager(app) {
         sortedMessages.sort(function(a, b) {
             return new Date(a.timestamp) - new Date(b.timestamp);
         });
-
+    
         var messagesContainer;
         var firstRender = false;
         
@@ -111,13 +111,13 @@ function MessageManager(app) {
             this.app.uiManager.elements.messageArea.appendChild(messagesContainer);
             firstRender = true;
         }
-
+    
         var wasAtBottom = this.isNearBottom(this.app.uiManager.elements.messageArea);
-
+    
         for (var i = 0; i < sortedMessages.length; i++) {
             var msg = sortedMessages[i];
             var messageId = msg.id;
-
+    
             var existingMessage = null;
             var messageElements = messagesContainer.getElementsByClassName('message');
             for (var j = 0; j < messageElements.length; j++) {
@@ -143,29 +143,93 @@ function MessageManager(app) {
                 
                 var content = document.createElement('div');
                 content.className = 'message-content';
-                
+
                 var authorName = document.createElement('strong');
                 authorName.textContent = msg.author.username;
-                
                 content.appendChild(authorName);
-                content.appendChild(document.createTextNode(' ' + msg.content));
+     
+                if (msg.referenced_message) {
+                    var replyContainer = document.createElement('div');
+                    replyContainer.className = 'reply-container';
 
-                content.innerHTML = authorName.outerHTML + ' ' + this.messageFormatter.formatContent(msg.content);
+                    var replyLabel = document.createElement('div');
+                    replyLabel.className = 'reply-label';
+                    replyLabel.textContent = 'Replying to ' + msg.referenced_message.author.username;
+
+                    var replyContentContainer = document.createElement('div');
+                    replyContentContainer.className = 'reply-content-container';
+
+                    var replyContent = document.createElement('span');
+                    replyContent.className = 'reply-content';
+                    replyContent.textContent = msg.referenced_message.content;
+
+                    replyContentContainer.appendChild(replyContent);
+                    replyContainer.appendChild(replyLabel);
+                    replyContainer.appendChild(replyContentContainer);
+
+                    content.appendChild(replyContainer);
+                }
+
+                var textNode = document.createTextNode(' ');
+                content.appendChild(textNode);
+
+                var formattedContent = document.createElement('span');
+                formattedContent.innerHTML = this.messageFormatter.formatContent(msg.content);
+                content.appendChild(formattedContent);
+
+                if (msg.attachments && msg.attachments.length > 0) {
+                    var attachmentContainer = document.createElement('div');
+                    attachmentContainer.className = 'attachment-container';
+                
+                    for (var a = 0; a < msg.attachments.length; a++) {
+                        var attachment = msg.attachments[a];
+                        
+                        if (attachment.content_type && attachment.content_type.startsWith("image/")) {
+                            var img = document.createElement('img');
+                            img.src = attachment.url;
+                            img.className = 'attachment-image';
+                            attachmentContainer.appendChild(img);
+                        } else if (attachment.content_type && attachment.content_type.startsWith("video/")) {
+                            var video = document.createElement('video');
+                            video.src = attachment.url;
+                            video.controls = true;
+                            video.className = 'attachment-video';
+                            attachmentContainer.appendChild(video);
+                        } else {
+                            var fileLink = document.createElement('a');
+                            fileLink.href = attachment.url;
+                            fileLink.textContent = '[' + attachment.filename + ' (' + 
+                                (attachment.size / 1024 / 1024).toFixed(2) + 'MB)]';
+                            fileLink.className = 'attachment-file';
+                            attachmentContainer.appendChild(fileLink);
+                        }
+                    }
+                
+                    content.appendChild(attachmentContainer);
+                }
                 
                 newMessage.appendChild(avatar);
                 newMessage.appendChild(content);
-
+    
                 messagesContainer.appendChild(newMessage);
             } else {
                 var contentElement = existingMessage.querySelector('.message-content');
-                var newContent = '<strong>' + msg.author.username + '</strong> ' + this.messageFormatter.formatContent(msg.content);
 
-                if (contentElement.innerHTML !== newContent) {
-                    contentElement.innerHTML = newContent;
+                var formattedContent = this.messageFormatter.formatContent(msg.content);
+                var contentSpan = contentElement.querySelector('span:not(.reply-content)');
+                
+                if (contentSpan) {
+                    if (contentSpan.innerHTML !== formattedContent) {
+                        contentSpan.innerHTML = formattedContent;
+                    }
+                } else {
+                    var newContentSpan = document.createElement('span');
+                    newContentSpan.innerHTML = formattedContent;
+                    contentElement.appendChild(newContentSpan);
                 }
             }
         }
-
+    
         if (firstRender || wasAtBottom) {
             this.app.uiManager.elements.messageArea.scrollTop = this.app.uiManager.elements.messageArea.scrollHeight;
         }
