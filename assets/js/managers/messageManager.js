@@ -73,6 +73,10 @@ function MessageManager(app) {
 
                 if (uniqueNewMessages.length > 0) {
                     this.app.state.lastMessageId = uniqueNewMessages[uniqueNewMessages.length - 1].id;
+
+                    if (this.app.state.currentView === 'dm' && document.visibilityState !== 'visible') {
+                        this.showDmNotification(uniqueNewMessages);
+                    }
                 }
 
                 for (var k = 0; k < uniqueNewMessages.length; k++) {
@@ -86,6 +90,117 @@ function MessageManager(app) {
             .catch(function (error) {
                 console.error("Error checking for new messages:", error);
             });
+    };
+
+    this.initializeAllDmTracking = function () {
+
+        this.app.apiService.fetch("https://discord.com/api/v9/users/@me/channels")
+            .then(function (res) {
+                if (!res.ok) throw new Error("Failed to fetch DMs");
+                return res.json();
+            })
+            .then(function (dms) {
+                for (var i = 0; i < dms.length; i++) {
+                    var dm = dms[i];
+                    if (dm.last_message_id) {
+                        this.app.state.lastSeenMessageIds[dm.id] = dm.last_message_id;
+                    } else {
+                        this.app.state.lastSeenMessageIds[dm.id] = "0";
+                    }
+                }
+            }.bind(this))
+            .catch(function (error) {
+                console.error("Error initializing DM tracking:", error);
+            });
+    };
+
+    this.checkDmNotifications = function () {
+        this.app.apiService.fetch("https://discord.com/api/v9/users/@me/channels")
+            .then(function (res) {
+                if (!res.ok) throw new Error("Failed to fetch DMs");
+                return res.json();
+            })
+            .then(function (dms) {
+                for (var i = 0; i < dms.length; i++) {
+                    var dm = dms[i];
+                    if (!dm.last_message_id) continue;
+
+                    var lastSeenId = this.app.state.lastSeenMessageIds[dm.id] || "0";
+
+                    if (BigInt(dm.last_message_id) > BigInt(lastSeenId) &&
+                        (this.app.state.currentChannelId !== dm.id || document.visibilityState !== 'visible')) {
+                        this.fetchLastDmMessage(dm);
+                    }
+
+                    this.app.state.lastSeenMessageIds[dm.id] = dm.last_message_id;
+                }
+            }.bind(this))
+            .catch(function (error) {
+                console.error("Error checking DM notifications:", error);
+            });
+    };
+
+    this.fetchLastDmMessage = function (dm) {
+        this.app.apiService.fetch("https://discord.com/api/v9/channels/" + dm.id + "/messages?limit=1")
+            .then(function (res) {
+                if (!res.ok) return;
+                return res.json();
+            })
+            .then(function (messages) {
+                if (messages && messages.length > 0) {
+                    var message = messages[0];
+
+                    var messageTime = new Date(message.timestamp).getTime();
+                    var currentTime = new Date().getTime();
+                    var isRecent = (currentTime - messageTime) < 60000;
+
+                    if (isRecent) {
+                        var recipient = dm.recipients && dm.recipients.length > 0 ? dm.recipients[0] : null;
+
+                        if (recipient) {
+                            this.showNotification(recipient.username, message.content);
+                        }
+                    }
+                }
+            }.bind(this));
+    };
+
+    this.showNotification = function (sender, content) {
+        if (!("Notification" in window)) {
+            console.log("This browser does not support desktop notifications");
+            return;
+        }
+
+        if (Notification.permission === "granted") {
+            var notification = new Notification("New message from " + sender, {
+                body: content
+            });
+
+            notification.onclick = function () {
+                window.focus();
+            };
+        }
+        else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(function (permission) {
+                if (permission === "granted") {
+                    var notification = new Notification("New message from " + sender, {
+                        body: content,
+                        icon: "assets/img/logo.png"
+                    });
+
+                    notification.onclick = function () {
+                        window.focus();
+                    };
+                }
+            });
+        }
+    };
+
+    this.showDmNotification = function (messages) {
+        if (messages && messages.length > 0) {
+            var lastMessage = messages[messages.length - 1];
+            this.showNotification(lastMessage.author.username, lastMessage.content);
+        }
     };
 
 

@@ -37,6 +37,20 @@ function ChannelManager(app) {
 
         this.app.messageManager.fetchMessages();
         this.app.messageManager.startMessageRefresh();
+
+        this.app.apiService.fetch("https://discord.com/api/v9/channels/" + dmChannelId + "/messages?limit=1")
+            .then(function (res) {
+                if (!res.ok) return;
+                return res.json();
+            })
+            .then(function (messages) {
+                if (messages && messages.length > 0) {
+                    this.app.state.lastSeenMessageIds[dmChannelId] = messages[0].id;
+                }
+            }.bind(this))
+            .catch(function (error) {
+                console.error("Error updating last seen message:", error);
+            });
     };
 
     // load the channel from hash

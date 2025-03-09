@@ -17,71 +17,71 @@ function UIManager() {
         mainContent: document.getElementById("mainContent"),
         chatPopup: document.getElementById("chatPopup"),
         tabButtons: document.getElementsByClassName("tablink")
-        
+
     };
 
 
-this.showChannelListOverlay = function () {
-    this.elements.channelListContainer.style.display = "flex";
-    this.elements.channelListContainer.classList.add('hidden');
-    document.querySelector(".tab-container").style.display = "none";
-    
-    for (var i = 0; i < this.elements.tabButtons.length; i++) {
-        this.elements.tabButtons[i].style.display = "none";
-    }
+    this.showChannelListOverlay = function () {
+        this.elements.channelListContainer.style.display = "flex";
+        this.elements.channelListContainer.classList.add('hidden');
+        document.querySelector(".tab-container").style.display = "none";
 
-    void this.elements.channelListContainer.offsetWidth;
-
-    this.elements.channelListContainer.classList.remove('hidden');
-    this.elements.channelListContainer.classList.add('slide-in');
-};
-
-this.hideChannelListOverlay = function () {
-    var self = this;
-
-    this.elements.channelListContainer.classList.remove('slide-in');
-    this.elements.channelListContainer.classList.add('slide-out');
-  
-    setTimeout(function() {
-        self.elements.channelListContainer.style.display = "none";
-        self.elements.channelListContainer.classList.remove('slide-out');
-        document.querySelector(".tab-container").style.display = "flex";
-        
-        for (var i = 0; i < self.elements.tabButtons.length; i++) {
-            self.elements.tabButtons[i].style.display = "block";
+        for (var i = 0; i < this.elements.tabButtons.length; i++) {
+            this.elements.tabButtons[i].style.display = "none";
         }
-    }, 300); 
-};
 
-this.showChatPopup = function () {
-    this.elements.chatPopup.style.display = "flex";
-    this.elements.chatPopup.classList.add('hidden');
+        void this.elements.channelListContainer.offsetWidth;
 
-    for (var i = 0; i < this.elements.tabButtons.length; i++) {
-        this.elements.tabButtons[i].style.opacity = "0.5";
-    }
+        this.elements.channelListContainer.classList.remove('hidden');
+        this.elements.channelListContainer.classList.add('slide-in');
+    };
 
-    void this.elements.chatPopup.offsetWidth;
+    this.hideChannelListOverlay = function () {
+        var self = this;
 
-    this.elements.chatPopup.classList.remove('hidden');
-    this.elements.chatPopup.classList.add('slide-in');
-};
+        this.elements.channelListContainer.classList.remove('slide-in');
+        this.elements.channelListContainer.classList.add('slide-out');
 
-this.hideChatPopup = function () {
-    var self = this;
+        setTimeout(function () {
+            self.elements.channelListContainer.style.display = "none";
+            self.elements.channelListContainer.classList.remove('slide-out');
+            document.querySelector(".tab-container").style.display = "flex";
 
-    this.elements.chatPopup.classList.remove('slide-in');
-    this.elements.chatPopup.classList.add('slide-out');
+            for (var i = 0; i < self.elements.tabButtons.length; i++) {
+                self.elements.tabButtons[i].style.display = "block";
+            }
+        }, 300);
+    };
 
-    setTimeout(function() {
-        self.elements.chatPopup.style.display = "none";
-        self.elements.chatPopup.classList.remove('slide-out');
+    this.showChatPopup = function () {
+        this.elements.chatPopup.style.display = "flex";
+        this.elements.chatPopup.classList.add('hidden');
 
-        for (var i = 0; i < self.elements.tabButtons.length; i++) {
-            self.elements.tabButtons[i].style.opacity = "1";
+        for (var i = 0; i < this.elements.tabButtons.length; i++) {
+            this.elements.tabButtons[i].style.opacity = "0.5";
         }
-    }, 300); 
-};
+
+        void this.elements.chatPopup.offsetWidth;
+
+        this.elements.chatPopup.classList.remove('hidden');
+        this.elements.chatPopup.classList.add('slide-in');
+    };
+
+    this.hideChatPopup = function () {
+        var self = this;
+
+        this.elements.chatPopup.classList.remove('slide-in');
+        this.elements.chatPopup.classList.add('slide-out');
+
+        setTimeout(function () {
+            self.elements.chatPopup.style.display = "none";
+            self.elements.chatPopup.classList.remove('slide-out');
+
+            for (var i = 0; i < self.elements.tabButtons.length; i++) {
+                self.elements.tabButtons[i].style.opacity = "1";
+            }
+        }, 300);
+    };
 
     this.showLoading = function (isLoading) {
         this.elements.loadingIndicator.style.display = isLoading ? "block" : "none";

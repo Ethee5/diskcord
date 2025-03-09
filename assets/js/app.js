@@ -10,7 +10,8 @@ function DiskcordApp() {
         lastMessageId: null,
         refreshInterval: null,
         messages: {},
-        sidebarVisible: false
+        sidebarVisible: false,
+        lastSeenMessageIds: {},
     };
 
     // inlcude the services
@@ -20,6 +21,7 @@ function DiskcordApp() {
     this.channelManager = new ChannelManager(this);
     this.messageManager = new MessageManager(this);
     this.navigationManager = new NavigationManager(this);
+    this.messageManager.initializeAllDmTracking();
 
     // initalize the app
     this.init = function () {
@@ -27,6 +29,13 @@ function DiskcordApp() {
             window.location.href = "index.html";
             return;
         }
+        // request notification permission on startup
+        if ("Notification" in window && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+
+        // start checking for dm notifications
+        this.startDmNotificationChecker();
 
         // clear the hash on page load to avoid loading whatever was opened last session
         if (window.location.hash) {
@@ -48,7 +57,12 @@ function DiskcordApp() {
             self.navigationManager.handleHashChange();
         });
     };
+    this.startDmNotificationChecker = function () {
 
+        setInterval(function () {
+            this.messageManager.checkDmNotifications();
+        }.bind(this), 15000);
+    };
     // setup event listeners
     this.setupEventListeners = function () {
         var self = this;

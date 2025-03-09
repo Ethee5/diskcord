@@ -18,15 +18,16 @@
             <div id="serverList"></div>
             <div id="channelListContainer" class="channel-list-container" style="display: none;">
                 <div class="header">
-                    <button id="backButton" onclick="navigateBack()"><</button>
-                    <h3 id="serverTitle">Server name</h3>
+                    <button id="backButton" onclick="navigateBack()">
+                        </button>
+                            <h3 id="serverTitle">Server name</h3>
                 </div>
                 <div class="channel-list-scroll">
                     <div id="channelList"></div>
                 </div>
             </div>
-         
-            </div>
+
+        </div>
     </div>
 
     <div id="DMs" class="tabcontent">
@@ -43,16 +44,18 @@
             <h1>Profile</h1>
             <h3>not implemented yet!</h3>
             <button id="inviteButton" onclick="app.serverManager.joinServer()">Join My Server</button>
-            <p>thats just a test button and it doesnt work for now so just join from https://discord.gg/eRRvmvVSyf</p>
+            <p>thats just a test button and it doesnt work for now so just join from https://discord.gg/eRRvmvVSyf if u
+                care XDDD</p>
         </div>
     </div>
-    
+
 
 
     <div id="chatPopup" class="chat-popup" style="display:none;">
         <div class="header">
-            <button id="backButton" onclick="closeChatPopup()"><</button>
-            <h3 id="chatTitle">#channel-name</h3>
+            <button id="backButton" onclick="closeChatPopup()">
+                << /button>
+                    <h3 id="chatTitle">#channel-name</h3>
 
         </div>
         <div id="loadingIndicator" class="loading" style="display: none;"></div>
@@ -62,7 +65,7 @@
 
         <div class="input-area">
             <button id="uploadButton">+</button>
-            <input type="file" id="fileInput" style="display: none;" multiple>            
+            <input type="file" id="fileInput" style="display: none;" multiple>
             <input type="text" id="messageInput" placeholder="Type a message..." disabled />
             <button id="sendMessageBtn" onclick="app.messageManager.sendMessage()" disabled>➤</button>
         </div>

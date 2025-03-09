@@ -18,32 +18,32 @@ function NavigationManager(app) {
         }
     };
 
-this.navigateBack = function() {
-    if (this.app.state.currentView === 'server') {
-        if (this.app.uiManager.elements.chatPopup.style.display === "flex") {
-            var self = this;
-            this.app.uiManager.hideChatPopup();
-            
-            setTimeout(function() {
-                self.app.uiManager.hideChannelListOverlay();
-                self.app.state.currentServerId = null;
-                self.app.state.currentView = 'main';
-                self.app.uiManager.elements.serverList.style.display = "block";
-                self.app.uiManager.elements.channelList.style.display = "none";
-            }, 300);
+    this.navigateBack = function () {
+        if (this.app.state.currentView === 'server') {
+            if (this.app.uiManager.elements.chatPopup.style.display === "flex") {
+                var self = this;
+                this.app.uiManager.hideChatPopup();
+
+                setTimeout(function () {
+                    self.app.uiManager.hideChannelListOverlay();
+                    self.app.state.currentServerId = null;
+                    self.app.state.currentView = 'main';
+                    self.app.uiManager.elements.serverList.style.display = "block";
+                    self.app.uiManager.elements.channelList.style.display = "none";
+                }, 300);
+            } else {
+                this.app.uiManager.hideChannelListOverlay();
+                this.app.state.currentServerId = null;
+                this.app.state.currentView = 'main';
+                this.app.uiManager.elements.serverList.style.display = "block";
+                this.app.uiManager.elements.channelList.style.display = "none";
+            }
         } else {
-            this.app.uiManager.hideChannelListOverlay();
-            this.app.state.currentServerId = null;
-            this.app.state.currentView = 'main';
-            this.app.uiManager.elements.serverList.style.display = "block";
-            this.app.uiManager.elements.channelList.style.display = "none";
+            this.app.uiManager.hideChatPopup();
         }
-    } else {
-        this.app.uiManager.hideChatPopup();
-    }
-    
-    this.resetChatView();
-};
+
+        this.resetChatView();
+    };
 
     this.resetChatView = function () {
         this.app.uiManager.resetChatView();
