@@ -1,4 +1,4 @@
-//  handling server related operations
+// handling server related operations
 function ServerManager(app) {
     this.app = app;
 
@@ -106,7 +106,6 @@ function ServerManager(app) {
                     }
                 }
                 
-    
                 this.app.uiManager.elements.channelList.innerHTML = channelsHtml || "<div>No channels found</div>";
                 this.app.uiManager.elements.channelList.style.display = "block";
                 this.app.uiManager.elements.serverList.style.display = "none";

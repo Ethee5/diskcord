@@ -8,17 +8,18 @@ function ChannelManager(app) {
         this.app.state.currentChannelId = channelId;
         this.app.state.currentServerId = serverId;
         this.app.state.currentView = 'server';
-
+    
         window.location.hash = "#guild-" + serverId + "/" + channelId;
-
-        this.app.uiManager.elements.headerTitle.textContent = "#" + channelName;
+    
+        this.app.uiManager.elements.chatTitle.textContent = "#" + channelName;
         this.app.uiManager.elements.messageInput.disabled = false;
         this.app.uiManager.elements.sendButton.disabled = false;
-
+        this.app.uiManager.showChatPopup();
+    
         this.app.messageManager.fetchMessages();
+
         this.app.messageManager.startMessageRefresh();
     };
-
     // load DM (duh)
     this.loadDM = function(dmChannelId, userId, username) {
         this.app.messageManager.resetAppState();
@@ -28,9 +29,10 @@ function ChannelManager(app) {
 
         window.location.hash = "#dm-" + userId;
 
-        this.app.uiManager.elements.headerTitle.textContent = "DM: " + username;
+        this.app.uiManager.elements.chatTitle.textContent = "DM: " + username;
         this.app.uiManager.elements.messageInput.disabled = false;
         this.app.uiManager.elements.sendButton.disabled = false;
+        this.app.uiManager.showChatPopup();
 
         this.app.messageManager.fetchMessages();
         this.app.messageManager.startMessageRefresh();

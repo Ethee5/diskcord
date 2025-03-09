@@ -7,16 +7,15 @@ document.addEventListener('DOMContentLoaded', function() {
     app.init();
     
     // global functions required for ui events
-    window.toggleMenu = function() {
-        var isVisible = app.uiManager.toggleMenu();
-        app.state.sidebarVisible = isVisible;
-    };
-    
     window.navigateBack = function() {
         app.navigationManager.navigateBack();
     };
     
     window.logout = function() {
         app.logout();
+    };
+
+    window.closeChatPopup = function() {
+        app.uiManager.hideChatPopup();
     };
 });

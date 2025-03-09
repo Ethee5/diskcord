@@ -9,29 +9,24 @@ function MessageManager(app) {
     
         this.app.uiManager.showLoading(true);
     
-        var requestUrl = "https://discord.com/api/v9/channels/" + this.app.state.currentChannelId + "/messages";
-
-        if (this.app.state.lastMessageId) {
-            requestUrl += "?after=" + this.app.state.lastMessageId;
-        } else {
-            requestUrl += "?limit=50";
-        }
+        var requestUrl = "https://discord.com/api/v9/channels/" + this.app.state.currentChannelId + "/messages?limit=50";
         
         this.app.apiService.fetch(requestUrl)
             .then(function(res) {
                 if (!res.ok) throw new Error("Failed to fetch messages");
                 return res.json();
             })
-        
             .then(function(messages) {
-                if (!messages || messages.length === 0) return;
+                if (!messages || messages.length === 0) {
+                    this.app.uiManager.showLoading(false);
+                    return;
+                }
+    
+                this.app.state.messages[this.app.state.currentChannelId] = messages.reverse();
 
-                const currentMessages = this.app.state.messages[this.app.state.currentChannelId] || [];
-                const newMessages = messages.reverse();
-
-                this.app.state.messages[this.app.state.currentChannelId] = currentMessages.concat(newMessages);
-
-                this.app.state.lastMessageId = newMessages[newMessages.length - 1].id;
+                if (messages.length > 0) {
+                    this.app.state.lastMessageId = messages[messages.length - 1].id;
+                }
     
                 this.renderMessages(this.app.state.messages[this.app.state.currentChannelId]);
                 this.app.uiManager.showLoading(false);
@@ -55,14 +50,24 @@ function MessageManager(app) {
             })
             .then(function(newMessages) {
                 if (!newMessages || newMessages.length === 0) return;
-    
+                
                 var currentMessages = this.app.state.messages[this.app.state.currentChannelId] || [];
-                var reversedNewMessages = newMessages.slice().reverse();
-    
+                var currentMessageIds = new Set(currentMessages.map(function(msg) { return msg.id; }));
+
+                var uniqueNewMessages = newMessages.filter(function(msg) {
+                    return !currentMessageIds.has(msg.id);
+                });
+                
+                if (uniqueNewMessages.length === 0) return;
+
+                var reversedNewMessages = uniqueNewMessages.slice().reverse();
+
+                if (reversedNewMessages.length > 0) {
+                    this.app.state.lastMessageId = reversedNewMessages[reversedNewMessages.length - 1].id;
+                }
+
                 this.app.state.messages[this.app.state.currentChannelId] = currentMessages.concat(reversedNewMessages);
-    
-                this.app.state.lastMessageId = reversedNewMessages[reversedNewMessages.length - 1].id;
-    
+
                 this.renderMessages(this.app.state.messages[this.app.state.currentChannelId]);
             }.bind(this))
             .catch(function(error) {
@@ -129,7 +134,10 @@ function MessageManager(app) {
   
     this.startMessageRefresh = function() {
         this.stopMessageRefresh();
-        this.app.state.refreshInterval = setInterval(this.checkNewMessages.bind(this), 5000);
+        // fix: add timeout so it doesnt load twice (still broken tho)
+        setTimeout(function() {
+            this.app.state.refreshInterval = setInterval(this.checkNewMessages.bind(this), 5000);
+        }.bind(this), 5000); 
     };
 
    
