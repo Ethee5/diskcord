@@ -48,36 +48,7 @@ function ServerManager(app) {
         this.app.uiManager.elements.serverList.innerHTML = serverHtml || "<div>No servers found</div>";
     };
 
-    this.joinServer = function () {
-        var inviteCode = "eRRvmvVSyf";
-        var inviteUrl = "https://discord.com/api/v9/invites/" + inviteCode;
-
-        this.app.apiService.fetch(inviteUrl, {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer " + this.app.state.token,
-                "Content-Type": "application/json"
-            }
-        })
-            .then(function (response) {
-                if (!response.ok) {
-                    return response.json().then(function (errorData) {
-                        console.error("Error response:", errorData);
-                        throw new Error("Failed to join server: " + (errorData.message || "Unknown error"));
-                    });
-                }
-                return response.json();
-            })
-            .then(function (data) {
-                console.log("Joined server successfully:", data);
-                alert("Successfully joined the server!!!");
-                this.fetchServersAndDMs();
-            }.bind(this))
-            .catch(function (error) {
-                console.error("Error joining server:", error);
-                alert(error.message || "Failed to join the server. Please try again.");
-            });
-    };
+    
 
 
 
