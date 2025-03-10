@@ -19,30 +19,40 @@ function NavigationManager(app) {
     };
 
     this.navigateBack = function () {
+        this.resetChatView();
+        
         if (this.app.state.currentView === 'server') {
-            if (this.app.uiManager.elements.chatPopup.style.display === "flex") {
+            var isChatVisible = this.app.uiManager.elements.chatPopup.style.display === "flex";
+            
+            if (isChatVisible) {
                 var self = this;
+
                 this.app.uiManager.hideChatPopup();
 
                 setTimeout(function () {
-                    self.app.uiManager.hideChannelListOverlay();
-                    self.app.state.currentServerId = null;
-                    self.app.state.currentView = 'main';
-                    self.app.uiManager.elements.serverList.style.display = "block";
-                    self.app.uiManager.elements.channelList.style.display = "none";
+                    self._returnToServerList();
                 }, 300);
             } else {
-                this.app.uiManager.hideChannelListOverlay();
-                this.app.state.currentServerId = null;
-                this.app.state.currentView = 'main';
-                this.app.uiManager.elements.serverList.style.display = "block";
-                this.app.uiManager.elements.channelList.style.display = "none";
+                this._returnToServerList();
             }
         } else {
             this.app.uiManager.hideChatPopup();
         }
+    };
 
-        this.resetChatView();
+    this._returnToServerList = function() {
+        this.app.uiManager.hideChannelListOverlay();
+        this.app.state.currentServerId = null;
+        this.app.state.currentView = 'main';
+
+        var display = {
+            serverList: "block",
+            channelList: "none"
+        };
+
+        Object.keys(display).forEach(function(key) {
+            this.app.uiManager.elements[key].style.display = display[key];
+        }, this);
     };
 
     this.resetChatView = function () {

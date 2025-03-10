@@ -93,7 +93,6 @@ function MessageManager(app) {
     };
 
     this.initializeAllDmTracking = function () {
-
         this.app.apiService.fetch("https://discord.com/api/v9/users/@me/channels")
             .then(function (res) {
                 if (!res.ok) throw new Error("Failed to fetch DMs");
@@ -203,154 +202,92 @@ function MessageManager(app) {
         }
     };
 
-
     this.renderMessages = function (messages) {
+        var messageArea = this.app.uiManager.elements.messageArea;
+
         if (!messages || messages.length === 0) {
-            this.app.uiManager.elements.messageArea.innerHTML = "<div class='message'>No messages in this channel yet. Start a conversation!</div>";
+            messageArea.innerHTML = "<div class='message'>No messages in this channel yet. Start a conversation!</div>";
             return;
         }
 
-        var sortedMessages = messages.slice();
-        sortedMessages.sort(function (a, b) {
+        var wasAtBottom = this.isNearBottom(messageArea);
+
+        var sortedMessages = messages.slice().sort(function (a, b) {
             return new Date(a.timestamp) - new Date(b.timestamp);
         });
 
-        var messagesContainer;
-        var firstRender = false;
-
-        messagesContainer = this.app.uiManager.elements.messageArea.querySelector('.messages-container');
-        if (!messagesContainer) {
-            messagesContainer = document.createElement('div');
-            messagesContainer.className = 'messages-container';
-            this.app.uiManager.elements.messageArea.innerHTML = '';
-            this.app.uiManager.elements.messageArea.appendChild(messagesContainer);
-            firstRender = true;
-        }
-
-        var wasAtBottom = this.isNearBottom(this.app.uiManager.elements.messageArea);
-
+        var messagesHTML = '';
+        
         for (var i = 0; i < sortedMessages.length; i++) {
             var msg = sortedMessages[i];
             var messageId = msg.id;
-
-            var existingMessage = null;
-            var messageElements = messagesContainer.getElementsByClassName('message');
-            for (var j = 0; j < messageElements.length; j++) {
-                if (messageElements[j].getAttribute('data-message-id') === messageId) {
-                    existingMessage = messageElements[j];
-                    break;
-                }
+            
+            var avatarUrl = msg.author.avatar
+                ? "https://cdn.discordapp.com/avatars/" + msg.author.id + "/" + msg.author.avatar + ".png"
+                : "https://cdn.discordapp.com/embed/avatars/0.png";
+                
+            var timestamp = new Date(msg.timestamp);
+            var formattedTimestamp = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            var replyHTML = '';
+            if (msg.referenced_message) {
+                replyHTML = 
+                    '<div class="reply-container">' +
+                        '<div class="reply-label">Replying to ' + msg.referenced_message.author.username + '</div>' +
+                        '<div class="reply-content-container">' +
+                            '<span class="reply-content">' + msg.referenced_message.content + '</span>' +
+                        '</div>' +
+                    '</div>';
             }
-
-            if (!existingMessage) {
-                var avatarUrl = msg.author.avatar
-                    ? "https://cdn.discordapp.com/avatars/" + msg.author.id + "/" + msg.author.avatar + ".png"
-                    : "https://cdn.discordapp.com/embed/avatars/0.png";
-
-                var newMessage = document.createElement('div');
-                newMessage.className = 'message';
-                newMessage.setAttribute('data-message-id', messageId);
-
-                var avatar = document.createElement('img');
-                avatar.src = avatarUrl;
-                avatar.className = 'avatar';
-                avatar.alt = msg.author.username;
-
-                var content = document.createElement('div');
-                content.className = 'message-content';
-
-                var authorName = document.createElement('strong');
-                var timestamp = new Date(msg.timestamp);
-                var formattedTimestamp = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                authorName.textContent = msg.author.username + " • " + formattedTimestamp;
-                content.appendChild(authorName);
-
-
-                if (msg.referenced_message) {
-                    var replyContainer = document.createElement('div');
-                    replyContainer.className = 'reply-container';
-
-                    var replyLabel = document.createElement('div');
-                    replyLabel.className = 'reply-label';
-                    replyLabel.textContent = 'Replying to ' + msg.referenced_message.author.username;
-
-                    var replyContentContainer = document.createElement('div');
-                    replyContentContainer.className = 'reply-content-container';
-
-                    var replyContent = document.createElement('span');
-                    replyContent.className = 'reply-content';
-                    replyContent.textContent = msg.referenced_message.content;
-
-                    replyContentContainer.appendChild(replyContent);
-                    replyContainer.appendChild(replyLabel);
-                    replyContainer.appendChild(replyContentContainer);
-
-                    content.appendChild(replyContainer);
-                }
-
-                var textNode = document.createTextNode(' ');
-                content.appendChild(textNode);
-
-                var formattedContent = document.createElement('span');
-                formattedContent.innerHTML = this.messageFormatter.formatContent(msg.content);
-                content.appendChild(formattedContent);
-
-                if (msg.attachments && msg.attachments.length > 0) {
-                    var attachmentContainer = document.createElement('div');
-                    attachmentContainer.className = 'attachment-container';
-
-                    for (var a = 0; a < msg.attachments.length; a++) {
-                        var attachment = msg.attachments[a];
-
-                        if (attachment.content_type && attachment.content_type.startsWith("image/")) {
-                            var img = document.createElement('img');
-                            img.src = attachment.url;
-                            img.className = 'attachment-image';
-                            attachmentContainer.appendChild(img);
-                        } else if (attachment.content_type && attachment.content_type.startsWith("video/")) {
-                            var video = document.createElement('video');
-                            video.src = attachment.url;
-                            video.controls = true;
-                            video.className = 'attachment-video';
-                            attachmentContainer.appendChild(video);
-                        } else {
-                            var fileLink = document.createElement('a');
-                            fileLink.href = attachment.url;
-                            fileLink.textContent = '[' + attachment.filename + ' (' +
-                                (attachment.size / 1024 / 1024).toFixed(2) + 'MB)]';
-                            fileLink.className = 'attachment-file';
-                            attachmentContainer.appendChild(fileLink);
-                        }
+            
+            var formattedContent = this.messageFormatter.formatContent(msg.content);
+            
+            var attachmentsHTML = '';
+            if (msg.attachments && msg.attachments.length > 0) {
+                attachmentsHTML = '<div class="attachment-container">';
+                
+                for (var a = 0; a < msg.attachments.length; a++) {
+                    var attachment = msg.attachments[a];
+                    
+                    if (attachment.content_type && attachment.content_type.startsWith("image/")) {
+                        attachmentsHTML += '<img src="' + attachment.url + '" class="attachment-image">';
+                    } else if (attachment.content_type && attachment.content_type.startsWith("video/")) {
+                        attachmentsHTML += '<video src="' + attachment.url + '" controls class="attachment-video"></video>';
+                    } else {
+                        attachmentsHTML += '<a href="' + attachment.url + '" class="attachment-file">[' + 
+                            attachment.filename + ' (' + (attachment.size / 1024 / 1024).toFixed(2) + 'MB)]</a>';
                     }
-
-                    content.appendChild(attachmentContainer);
                 }
-
-                newMessage.appendChild(avatar);
-                newMessage.appendChild(content);
-
-                messagesContainer.appendChild(newMessage);
-            } else {
-                var contentElement = existingMessage.querySelector('.message-content');
-
-                var formattedContent = this.messageFormatter.formatContent(msg.content);
-                var contentSpan = contentElement.querySelector('span:not(.reply-content)');
-
-                if (contentSpan) {
-                    if (contentSpan.innerHTML !== formattedContent) {
-                        contentSpan.innerHTML = formattedContent;
-                    }
-                } else {
-                    var newContentSpan = document.createElement('span');
-                    newContentSpan.innerHTML = formattedContent;
-                    contentElement.appendChild(newContentSpan);
-                }
+                
+                attachmentsHTML += '</div>';
             }
+            
+            messagesHTML += 
+                '<div class="message" data-message-id="' + messageId + '">' +
+                    '<img src="' + avatarUrl + '" class="avatar" alt="' + msg.author.username + '">' +
+                    '<div class="message-content">' +
+                        '<strong>' + msg.author.username + ' • ' + formattedTimestamp + '</strong>' +
+                        replyHTML +
+                        ' <span>' + formattedContent + '</span>' +
+                        attachmentsHTML +
+                    '</div>' +
+                '</div>';
         }
 
-        if (firstRender || wasAtBottom) {
-            this.app.uiManager.elements.messageArea.scrollTop = this.app.uiManager.elements.messageArea.scrollHeight;
+        var containerHTML = '<div class="messages-container">' + messagesHTML + '</div>';
+
+        messageArea.innerHTML = containerHTML;
+
+        if (window.twemoji) {
+            twemoji.parse(messageArea, {
+                folder: 'svg',
+                ext: '.svg',
+                size: '72x72'
+            });
+        }
+
+        if (wasAtBottom) {
+            messageArea.scrollTop = messageArea.scrollHeight;
         }
     };
 
@@ -362,7 +299,6 @@ function MessageManager(app) {
         var element = this.app.uiManager.elements.messageArea;
         return element.scrollHeight - element.scrollTop - element.clientHeight < 50;
     };
-
 
     this.sendMessage = function () {
         var messageContent = this.app.uiManager.elements.messageInput.value.trim();
@@ -386,7 +322,6 @@ function MessageManager(app) {
             }.bind(this));
     };
 
-
     this.startMessageRefresh = function () {
         this.stopMessageRefresh();
         // fix: add timeout so it doesnt load twice 
@@ -395,14 +330,12 @@ function MessageManager(app) {
         }.bind(this), 5000);
     };
 
-
     this.stopMessageRefresh = function () {
         if (this.app.state.refreshInterval) {
             clearInterval(this.app.state.refreshInterval);
             this.app.state.refreshInterval = null;
         }
     };
-
 
     this.resetAppState = function () {
         this.stopMessageRefresh();

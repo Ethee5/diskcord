@@ -2,16 +2,10 @@
 function ChannelManager(app) {
     this.app = app;
 
-    // load the channel (duh)
-    this.loadChannel = function (serverId, channelId, channelName) {
+    this._prepareChannelView = function(channelId, view) {
         this.app.messageManager.resetAppState();
         this.app.state.currentChannelId = channelId;
-        this.app.state.currentServerId = serverId;
-        this.app.state.currentView = 'server';
-
-        window.location.hash = "#guild-" + serverId + "/" + channelId;
-
-        this.app.uiManager.elements.chatTitle.innerHTML = twemoji.parse("#" + channelName);
+        this.app.state.currentView = view;
 
         this.app.uiManager.elements.messageInput.disabled = false;
         this.app.uiManager.elements.sendButton.disabled = false;
@@ -21,22 +15,24 @@ function ChannelManager(app) {
         this.app.messageManager.startMessageRefresh();
     };
 
+    // load the channel (duh)
+    this.loadChannel = function (serverId, channelId, channelName) {
+        this._prepareChannelView(channelId, 'server');
+        this.app.state.currentServerId = serverId;
+
+        window.location.hash = "#guild-" + serverId + "/" + channelId;
+
+        this.app.uiManager.elements.chatTitle.innerHTML = twemoji.parse("#" + channelName);
+    };
+
     // load DM (duh)
     this.loadDM = function (dmChannelId, userId, username) {
-        this.app.messageManager.resetAppState();
-        this.app.state.currentChannelId = dmChannelId;
+        this._prepareChannelView(dmChannelId, 'dm');
         this.app.state.currentDmUserId = userId;
-        this.app.state.currentView = 'dm';
 
         window.location.hash = "#dm-" + userId;
 
         this.app.uiManager.elements.chatTitle.textContent = "DM: " + username;
-        this.app.uiManager.elements.messageInput.disabled = false;
-        this.app.uiManager.elements.sendButton.disabled = false;
-        this.app.uiManager.showChatPopup();
-
-        this.app.messageManager.fetchMessages();
-        this.app.messageManager.startMessageRefresh();
 
         this.app.apiService.fetch("https://discord.com/api/v9/channels/" + dmChannelId + "/messages?limit=1")
             .then(function (res) {
@@ -76,15 +72,11 @@ function ChannelManager(app) {
                 return res.json();
             })
             .then(function (dms) {
-                var dm = null;
-                for (var i = 0; i < dms.length; i++) {
-                    if (dms[i].recipients &&
-                        dms[i].recipients.length > 0 &&
-                        dms[i].recipients[0].id === userId) {
-                        dm = dms[i];
-                        break;
-                    }
-                }
+                var dm = dms.find(function(dmChannel) {
+                    return dmChannel.recipients && 
+                           dmChannel.recipients.length > 0 && 
+                           dmChannel.recipients[0].id === userId;
+                });
 
                 if (dm) {
                     this.loadDM(dm.id, userId, dm.recipients[0].username);

@@ -34,23 +34,20 @@ function ServerManager(app) {
 
         for (var i = 0; i < servers.length; i++) {
             var server = servers[i];
-            var iconUrl;
-            if (server.icon) {
-                iconUrl = "https://cdn.discordapp.com/icons/" + server.id + "/" + server.icon + ".png";
-            } else {
-                iconUrl = "assets/img/default-server.png";
-            }
+            var iconUrl = server.icon 
+                ? "https://cdn.discordapp.com/icons/" + server.id + "/" + server.icon + ".png"
+                : "assets/img/default-server.png";
 
-            serverHtml += '<div class="item" onclick="app.serverManager.loadServerChannels(\'' + server.id + '\', \'' + server.name.replace(/'/g, "\\'") + '\')">' +
-                '<img src="' + iconUrl + '" class="server-icon"> ' + server.name + '</div>';
+            var escapedName = server.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+            serverHtml += '<div class="item" onclick="app.serverManager.loadServerChannels(\'' + 
+                server.id + '\', \'' + escapedName + '\')">' +
+                '<img src="' + iconUrl + '" class="server-icon"> ' + 
+                server.name + '</div>';
         }
 
         this.app.uiManager.elements.serverList.innerHTML = serverHtml || "<div>No servers found</div>";
     };
-
-    
-
-
 
     this.renderDMList = function (dms) {
         var dmHtml = "";
@@ -62,23 +59,23 @@ function ServerManager(app) {
         for (var i = 0; i < dms.length; i++) {
             var dm = dms[i];
             var recipient = dm.recipients && dm.recipients.length > 0 ? dm.recipients[0] : null;
+            
             if (recipient) {
                 var avatarUrl = recipient.avatar
                     ? "https://cdn.discordapp.com/avatars/" + recipient.id + "/" + recipient.avatar + ".png"
                     : "assets/img/default-avatar.png";
 
-                dmHtml += '<div class="item" onclick="app.channelManager.loadDM(\'' + dm.id + '\', \'' + recipient.id + '\', \'' + recipient.username + '\')">' +
-                    '<img src="' + avatarUrl + '" class="user-avatar"> ' + recipient.username +
-                    '</div>';
+                var escapedUsername = recipient.username.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+                dmHtml += '<div class="item" onclick="app.channelManager.loadDM(\'' + 
+                    dm.id + '\', \'' + recipient.id + '\', \'' + escapedUsername + '\')">' +
+                    '<img src="' + avatarUrl + '" class="user-avatar"> ' + 
+                    recipient.username + '</div>';
             }
         }
 
         this.app.uiManager.elements.dmList.innerHTML = dmHtml || "<div>No direct messages found</div>";
     };
-
-
-
-
 
     this.loadServerChannels = function (serverId, serverName) {
         this.app.messageManager.resetAppState();
@@ -94,43 +91,9 @@ function ServerManager(app) {
                 return res.json();
             })
             .then(function (channels) {
-                var categories = {};
-                var uncategorizedChannels = [];
+                var processedChannels = this.processChannels(channels);
 
-                channels.sort(function (a, b) { return a.position - b.position; });
-
-                for (var i = 0; i < channels.length; i++) {
-                    var channel = channels[i];
-                    if (channel.type === 4) {
-                        categories[channel.id] = { name: channel.name, channels: [] };
-                    } else if (channel.parent_id && categories[channel.parent_id]) {
-                        categories[channel.parent_id].channels.push(channel);
-                    } else {
-                        uncategorizedChannels.push(channel);
-                    }
-                }
-
-                var channelsHtml = "";
-
-                // categorized channels
-                var categoryKeys = Object.keys(categories);
-                for (var j = 0; j < categoryKeys.length; j++) {
-                    var category = categories[categoryKeys[j]];
-                    channelsHtml += "<div class='category'>" + category.name + "</div>";
-                    for (var k = 0; k < category.channels.length; k++) {
-                        var ch = category.channels[k];
-                        channelsHtml += "<div class='item' onclick=\"app.channelManager.loadChannel('" + serverId + "', '" + ch.id + "', '" + ch.name + "')\">#" + ch.name + "</div>";
-                    }
-                }
-
-                // uncategorized channels
-                if (uncategorizedChannels.length > 0) {
-                    channelsHtml += "<div class='category'>Uncategorized</div>";
-                    for (var m = 0; m < uncategorizedChannels.length; m++) {
-                        var ch = uncategorizedChannels[m];
-                        channelsHtml += "<div class='item' onclick=\"app.channelManager.loadChannel('" + serverId + "', '" + ch.id + "', '" + ch.name + "')\">#" + ch.name + "</div>";
-                    }
-                }
+                var channelsHtml = this.generateChannelsHtml(processedChannels, serverId);
 
                 this.app.uiManager.elements.channelList.innerHTML = channelsHtml || "<div>No channels found</div>";
                 this.app.uiManager.elements.channelList.style.display = "block";
@@ -143,5 +106,69 @@ function ServerManager(app) {
                 this.app.uiManager.showError("Failed to load channels. Please try again.");
                 this.app.uiManager.showLoading(false);
             }.bind(this));
+    };
+
+    this.processChannels = function(channels) {
+        var categories = {};
+        var uncategorizedChannels = [];
+
+        channels.sort(function (a, b) { 
+            return a.position - b.position; 
+        });
+
+        for (var i = 0; i < channels.length; i++) {
+            var channel = channels[i];
+            if (channel.type === 4) {
+                categories[channel.id] = { 
+                    name: channel.name, 
+                    channels: [] 
+                };
+            } else if (channel.parent_id && categories[channel.parent_id]) {
+                categories[channel.parent_id].channels.push(channel);
+            } else {
+                uncategorizedChannels.push(channel);
+            }
+        }
+        
+        return {
+            categories: categories,
+            uncategorizedChannels: uncategorizedChannels
+        };
+    };
+
+    this.generateChannelsHtml = function(processedChannels, serverId) {
+        var channelsHtml = "";
+        var categories = processedChannels.categories;
+        var uncategorizedChannels = processedChannels.uncategorizedChannels;
+        
+        var categoryKeys = Object.keys(categories);
+        for (var j = 0; j < categoryKeys.length; j++) {
+            var category = categories[categoryKeys[j]];
+            channelsHtml += "<div class='category'>" + category.name + "</div>";
+            
+            for (var k = 0; k < category.channels.length; k++) {
+                var ch = category.channels[k];
+                var escapedName = ch.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                
+                channelsHtml += "<div class='item' onclick=\"app.channelManager.loadChannel('" + 
+                    serverId + "', '" + ch.id + "', '" + escapedName + "')\">#" + 
+                    ch.name + "</div>";
+            }
+        }
+
+        if (uncategorizedChannels.length > 0) {
+            channelsHtml += "<div class='category'>Uncategorized</div>";
+            
+            for (var m = 0; m < uncategorizedChannels.length; m++) {
+                var ch = uncategorizedChannels[m];
+                var escapedName = ch.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                
+                channelsHtml += "<div class='item' onclick=\"app.channelManager.loadChannel('" + 
+                    serverId + "', '" + ch.id + "', '" + escapedName + "')\">#" + 
+                    ch.name + "</div>";
+            }
+        }
+        
+        return channelsHtml;
     };
 }
