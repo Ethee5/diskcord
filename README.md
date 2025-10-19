@@ -1,3 +1,6 @@
+# Why did I fork this?
+Honestly don't know.
+
 # diskcord
  web discord client for old devices
 try it here: https://maem0.github.io/diskcord/
